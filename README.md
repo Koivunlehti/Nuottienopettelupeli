@@ -1,0 +1,2 @@
+# Nuottienopettelupeli
+ Pygame harjoitusprojekti
