@@ -11,7 +11,7 @@ soitin.set_instrument(0,1)
 # Näytön alustus
 pygame.display.set_caption("Testi")
 naytto_leveys = 640
-naytto_korkeus = 480
+naytto_korkeus = 600
 naytto = pygame.display.set_mode((naytto_leveys, naytto_korkeus))
 
 # Kello
@@ -61,11 +61,13 @@ while True:
             for kosketin in koskettimet_musta:
                 if kosketin[0].collidepoint(tapahtuma.pos):
                     musta_klikattu = True
+                    soitin.note_off(kosketin[1], 127,1)
                     soitin.note_on(kosketin[1], 127,1)
                     break
             if musta_klikattu == False:
                 for kosketin in koskettimet_valkoinen:
                     if kosketin[0].collidepoint(tapahtuma.pos):
+                        soitin.note_off(kosketin[1], 127,1)
                         soitin.note_on(kosketin[1], 127,1)
 
     # Koskettimien piirto 
@@ -88,7 +90,62 @@ while True:
             pygame.draw.rect(naytto,(140,140,140),kosketin[0])
         else:
             pygame.draw.rect(naytto,(50,50,50),kosketin[0])
-        
+
+    rivivali = 20    
+    for i in range(5):
+        pygame.draw.line(naytto,(200,200,200),(0,100 + i * rivivali), (naytto_leveys,100 + i * rivivali))
+
+    for i in range(5):
+        pygame.draw.line(naytto,(200,200,200),(0,260 + i * rivivali), (naytto_leveys,260 + i * rivivali))
+
+    g_alku_x = 50
+    g_alku_y = 220
+    mittakaava = 1
+    pygame.draw.lines(naytto, (200,200,200), False, [
+        (g_alku_x, g_alku_y), 
+        (g_alku_x+15 * mittakaava, g_alku_y-10 * mittakaava), 
+        (g_alku_x+5 * mittakaava, g_alku_y-20 * mittakaava), 
+        (g_alku_x-(5 * mittakaava), g_alku_y-10 * mittakaava), 
+        (g_alku_x, g_alku_y), 
+        (g_alku_x+20 * mittakaava, g_alku_y), 
+        (g_alku_x+30 * mittakaava, g_alku_y-20 * mittakaava), 
+        (g_alku_x+5 * mittakaava, g_alku_y-130 * mittakaava), 
+        (g_alku_x+20 * mittakaava, g_alku_y-155 * mittakaava), 
+        (g_alku_x+30 * mittakaava, g_alku_y-135 * mittakaava), 
+        (g_alku_x+20 * mittakaava, g_alku_y-120 * mittakaava), 
+        (g_alku_x-(15 * mittakaava), g_alku_y-75 * mittakaava), 
+        (g_alku_x-(10 * mittakaava), g_alku_y-45 * mittakaava), 
+        (g_alku_x+10 * mittakaava, g_alku_y-35 * mittakaava), 
+        (g_alku_x+35 * mittakaava, g_alku_y-40 * mittakaava), 
+        (g_alku_x+40 * mittakaava, g_alku_y-60 * mittakaava), 
+        (g_alku_x+30 * mittakaava, g_alku_y-75 * mittakaava), 
+        (g_alku_x+10 * mittakaava, g_alku_y-70 * mittakaava), 
+        (g_alku_x+5 * mittakaava, g_alku_y-55  * mittakaava), 
+        (g_alku_x+15 * mittakaava, g_alku_y-45 * mittakaava), 
+        (g_alku_x+25 * mittakaava, g_alku_y-55 * mittakaava)],4)
+
+    pygame.draw.circle(naytto, (200,200,200), [g_alku_x + 5 * mittakaava, g_alku_y - 10 * mittakaava], 10)
+
+    f_alku_x = 50
+    f_alku_y = 280
+    pygame.draw.lines(naytto,(200,200,200), False, [
+        (f_alku_x-10 * mittakaava,f_alku_y),
+        (f_alku_x,f_alku_y-10 * mittakaava),
+        (f_alku_x+10 * mittakaava,f_alku_y),
+        (f_alku_x,f_alku_y+10 * mittakaava),
+        (f_alku_x-10 * mittakaava,f_alku_y),
+        (f_alku_x-10 * mittakaava,f_alku_y-20 * mittakaava),
+        (f_alku_x+5 * mittakaava,f_alku_y-30 * mittakaava),
+        (f_alku_x+20 * mittakaava,f_alku_y-35 * mittakaava),
+        (f_alku_x+40 * mittakaava,f_alku_y-20 * mittakaava),
+        (f_alku_x+45 * mittakaava,f_alku_y),
+        (f_alku_x+40 * mittakaava,f_alku_y+20 * mittakaava),
+        (f_alku_x+25 * mittakaava,f_alku_y+40 * mittakaava),
+        (f_alku_x-15 * mittakaava,f_alku_y+70 * mittakaava)],4)
+    pygame.draw.circle(naytto, (200,200,200), [f_alku_x * mittakaava,f_alku_y * mittakaava], 10)
+    pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + -10 * mittakaava], 5)
+    pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + 10 * mittakaava], 5)
+
     pygame.display.flip()
 
     kello.tick(60)
