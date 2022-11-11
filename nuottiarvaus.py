@@ -52,10 +52,16 @@ for i in range(kosk_maara):
         kosk_vali += 2
         midi += 2
 
+# Haettavan nuotin muuttujat
 luo_nuotti = True
 nuotti_x = 0
 nuotti_y = 0
+nuotti_midi = 0
+
+# Maaliviivan sijainti
 maaliviiva_x = 150
+
+# pelisilmukka
 while True:
     naytto.fill((0,0,0))
     
@@ -70,17 +76,37 @@ while True:
                     musta_klikattu = True
                     soitin.note_off(kosketin[1], 127,1)
                     soitin.note_on(kosketin[1], 127,1)
+
+                    #Painetun koskettimen vertaaminen haettavaan nuottiin
+                    if kosketin[1] == nuotti_midi:
+                        luo_nuotti = True 
                     break
             if musta_klikattu == False:
                 for kosketin in koskettimet_valkoinen:
                     if kosketin[0].collidepoint(tapahtuma.pos):
                         soitin.note_off(kosketin[1], 127,1)
                         soitin.note_on(kosketin[1], 127,1)
-    
+
+                        # Painetun koskettimen vertaaminen haettavaan nuottiin
+                        if kosketin[1] == nuotti_midi:
+                            luo_nuotti = True
+                        break
+
     # Nuotin luominen ja liikutus
     if luo_nuotti:
+        paikat_diskantti = [(60,190),(62,180),(64,170),(65,160),(67,150),(69,140),(71,130),(72,120),(74,110),(76,100),(77,90),(79,80),(81,70),(83,60),(84,50)] # (midi, y-koordinaatti)
+        paikat_basso = [(36,370),(38,360),(40,350),(41,340),(43,330),(45,320),(47,310),(48,300),(50,290),(52,280),(53,270),(55,260),(57,250),(59,240),(60,230)] # (midi, y-koordinaatti)
+        
+        if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
+            nuotti = paikat_diskantti[random.randrange(0,len(paikat_diskantti))]
+            nuotti_midi = nuotti[0]
+            nuotti_y = nuotti[1]
+        else:
+            nuotti = paikat_basso[random.randrange(0,len(paikat_basso))]
+            nuotti_midi = nuotti[0]
+            nuotti_y = nuotti[1]    
+
         nuotti_x = naytto_leveys
-        nuotti_y = random.randrange(100, 200)
         luo_nuotti = False
     else:
         if nuotti_x > maaliviiva_x:
