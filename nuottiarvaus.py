@@ -1,5 +1,7 @@
 import pygame
 import pygame.midi
+import random
+
 
 pygame.init()
 
@@ -7,9 +9,10 @@ pygame.init()
 pygame.midi.init()
 soitin = pygame.midi.Output(0)
 soitin.set_instrument(0,1)
+soitin.set_instrument(127,5)
 
 # Näytön alustus
-pygame.display.set_caption("Testi")
+pygame.display.set_caption("Nuottiarvaus")
 naytto_leveys = 640
 naytto_korkeus = 600
 naytto = pygame.display.set_mode((naytto_leveys, naytto_korkeus))
@@ -49,6 +52,10 @@ for i in range(kosk_maara):
         kosk_vali += 2
         midi += 2
 
+luo_nuotti = True
+nuotti_x = 0
+nuotti_y = 0
+maaliviiva_x = 150
 while True:
     naytto.fill((0,0,0))
     
@@ -69,6 +76,19 @@ while True:
                     if kosketin[0].collidepoint(tapahtuma.pos):
                         soitin.note_off(kosketin[1], 127,1)
                         soitin.note_on(kosketin[1], 127,1)
+    
+    # Nuotin luominen ja liikutus
+    if luo_nuotti:
+        nuotti_x = naytto_leveys
+        nuotti_y = random.randrange(100, 200)
+        luo_nuotti = False
+    else:
+        if nuotti_x > maaliviiva_x:
+            nuotti_x -= 1
+        else:
+            luo_nuotti = True
+            soitin.note_off(60, 127,5)
+            soitin.note_on(60, 127,5)
 
     # Koskettimien piirto 
     hiiri_x, hiiri_y = pygame.mouse.get_pos()
@@ -91,6 +111,13 @@ while True:
         else:
             pygame.draw.rect(naytto,(50,50,50),kosketin[0])
 
+    # Maalilinja piirto
+    pygame.draw.line(naytto,(222,40,20),(maaliviiva_x,50), (maaliviiva_x ,400),4)
+    
+    # Arvausalue piirto
+    pygame.draw.rect(naytto,(6,148,3),[maaliviiva_x + 4, 50, 350, 350])
+    
+    # Viivaston piirto
     rivivali = 20    
     for i in range(5):
         pygame.draw.line(naytto,(200,200,200),(0,100 + i * rivivali), (naytto_leveys,100 + i * rivivali))
@@ -98,6 +125,7 @@ while True:
     for i in range(5):
         pygame.draw.line(naytto,(200,200,200),(0,260 + i * rivivali), (naytto_leveys,260 + i * rivivali))
 
+    # G-Nuottiavain piirto
     g_alku_x = 50
     g_alku_y = 220
     mittakaava = 1
@@ -126,6 +154,7 @@ while True:
 
     pygame.draw.circle(naytto, (200,200,200), [g_alku_x + 5 * mittakaava, g_alku_y - 10 * mittakaava], 10)
 
+    # F-Nuottiavain piirto
     f_alku_x = 50
     f_alku_y = 280
     pygame.draw.lines(naytto,(200,200,200), False, [
@@ -145,6 +174,10 @@ while True:
     pygame.draw.circle(naytto, (200,200,200), [f_alku_x * mittakaava,f_alku_y * mittakaava], 10)
     pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + -10 * mittakaava], 5)
     pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + 10 * mittakaava], 5)
+
+    # Nuotti piirto
+    pygame.draw.line(naytto,(200,200,200),(nuotti_x + 27,nuotti_y + 10), (nuotti_x + 27, nuotti_y + -50),4)
+    pygame.draw.ellipse(naytto,(200,200,200), [nuotti_x, nuotti_y, 30, 20])
 
     pygame.display.flip()
 
