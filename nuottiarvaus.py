@@ -58,6 +58,7 @@ for i in range(kosk_maara):
 
 # Haettavan nuotin muuttujat
 luo_nuotti = True
+ylennetty = False
 nuotti_x = 0
 nuotti_y = 0
 nuotti_midi = 0
@@ -114,17 +115,24 @@ while True:
 
     # Nuotin luominen ja liikutus
     if luo_nuotti:
-        paikat_diskantti = [(60,190),(62,180),(64,170),(65,160),(67,150),(69,140),(71,130),(72,120),(74,110),(76,100),(77,90),(79,80),(81,70),(83,60),(84,50)] # (midi, y-koordinaatti)
-        paikat_basso = [(36,370),(38,360),(40,350),(41,340),(43,330),(45,320),(47,310),(48,300),(50,290),(52,280),(53,270),(55,260),(57,250),(59,240),(60,230)] # (midi, y-koordinaatti)
+        paikat_diskantti = [(60,190), (61,190,"#"), (62,180), (63,180,"#"), (64,170), (65,160), (66,160,"#"), (67,150), (68,150,"#"), (69,140), (70,140,"#"), (71,130), (72,120), (73,120,"#"), (74,110), (75,110,"#"), (76,100), (77,90), (78,90,"#"), (79,80), (80,80,"#"), (81,70), (82,70,"#"), (83,60), (84,50)] # (midi, y-koordinaatti)
+        paikat_basso = [(36,370), (37,370,"#"), (38,360), (39,360,"#"), (40,350), (41,340), (42,340,"#"), (43,330), (44,330,"#"), (45,320), (46,320,"#"), (47,310), (48,300), (49,300,"#"), (50,290), (51,290,"#"), (52,280), (53,270), (54,270,"#"), (55,260), (56,260,"#"), (57,250), (58,250,"#"), (59,240), (60,230)] # (midi, y-koordinaatti)
         
         if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
             nuotti = paikat_diskantti[random.randrange(0,len(paikat_diskantti))]
             nuotti_midi = nuotti[0]
             nuotti_y = nuotti[1]
+            
         else:
             nuotti = paikat_basso[random.randrange(0,len(paikat_basso))]
             nuotti_midi = nuotti[0]
             nuotti_y = nuotti[1]    
+        
+        # Jos nuotti on mustalla koskettimella, piirretään ylennysmerkki
+        if len(nuotti) >= 3:
+            ylennetty = True
+        else:
+            ylennetty = False
 
         nuotti_x = naytto_leveys
         luo_nuotti = False
@@ -222,6 +230,13 @@ while True:
     pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + -10 * mittakaava], 5)
     pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + 10 * mittakaava], 5)
 
+    # Ylennysmerkin piirto
+    if ylennetty:
+        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 25, nuotti_y - 5), (nuotti_x - 25, nuotti_y + 25), 3) # vasen pystyviiva
+        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 15, nuotti_y - 7), (nuotti_x - 15, nuotti_y + 23), 3) # oikea pystyviiva
+        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 35, nuotti_y + 5), (nuotti_x - 5, nuotti_y + 3), 4) # ylin vaakaviiva
+        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 35, nuotti_y + 15), (nuotti_x - 5, nuotti_y + 13), 4) # alin vaakaviiva
+    
     # Nuotti piirto
     pygame.draw.line(naytto,(200,200,200),(nuotti_x + 27,nuotti_y + 10), (nuotti_x + 27, nuotti_y + -50),4)
     pygame.draw.ellipse(naytto,(200,200,200), [nuotti_x, nuotti_y, 30, 20])
