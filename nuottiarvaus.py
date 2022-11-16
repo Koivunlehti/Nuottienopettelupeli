@@ -17,6 +17,10 @@ naytto_leveys = 640
 naytto_korkeus = 600
 naytto = pygame.display.set_mode((naytto_leveys, naytto_korkeus))
 
+# Tekstit ja fontit
+fontti = pygame.font.SysFont("Georgia", 48, bold=True)
+pisteet_teksti = fontti.render("Pisteet: 0", True, "white")
+
 # Kello
 kello = pygame.time.Clock()
 
@@ -58,8 +62,20 @@ nuotti_x = 0
 nuotti_y = 0
 nuotti_midi = 0
 
-# Maaliviivan sijainti
-maaliviiva_x = 150
+# Rajaviivan sijainti
+rajaviiva_x = 150
+rajaviiva_y = 50
+rajaviiva_pituus_x = rajaviiva_x
+rajaviiva_pituus_y = 400
+
+# Arvausalue
+arvausalue_x = rajaviiva_x + 4
+arvausalue_y = 50
+arvausalue_leveys = 350
+arvausalue_korkeus = 350
+
+# Pisteet
+pisteet = 0
 
 # pelisilmukka
 while True:
@@ -79,7 +95,9 @@ while True:
 
                     #Painetun koskettimen vertaaminen haettavaan nuottiin
                     if kosketin[1] == nuotti_midi:
-                        luo_nuotti = True 
+                        if nuotti_x <= arvausalue_x + arvausalue_leveys:
+                            luo_nuotti = True
+                            pisteet += 1
                     break
             if musta_klikattu == False:
                 for kosketin in koskettimet_valkoinen:
@@ -89,7 +107,9 @@ while True:
 
                         # Painetun koskettimen vertaaminen haettavaan nuottiin
                         if kosketin[1] == nuotti_midi:
-                            luo_nuotti = True
+                            if nuotti_x <= arvausalue_x + arvausalue_leveys:
+                                luo_nuotti = True
+                                pisteet += 1
                         break
 
     # Nuotin luominen ja liikutus
@@ -109,12 +129,13 @@ while True:
         nuotti_x = naytto_leveys
         luo_nuotti = False
     else:
-        if nuotti_x > maaliviiva_x:
+        if nuotti_x > rajaviiva_x:
             nuotti_x -= 1
         else:
             luo_nuotti = True
             soitin.note_off(60, 127,5)
             soitin.note_on(60, 127,5)
+            pisteet -= 10
 
     # Koskettimien piirto 
     hiiri_x, hiiri_y = pygame.mouse.get_pos()
@@ -137,11 +158,11 @@ while True:
         else:
             pygame.draw.rect(naytto,(50,50,50),kosketin[0])
 
-    # Maalilinja piirto
-    pygame.draw.line(naytto,(222,40,20),(maaliviiva_x,50), (maaliviiva_x ,400),4)
+    # Rajaviivan piirto
+    pygame.draw.line(naytto,(222,40,20),(rajaviiva_x, rajaviiva_y), (rajaviiva_pituus_x ,rajaviiva_pituus_y),4)
     
     # Arvausalue piirto
-    pygame.draw.rect(naytto,(6,148,3),[maaliviiva_x + 4, 50, 350, 350])
+    pygame.draw.rect(naytto,(6,148,3),[arvausalue_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
     
     # Viivaston piirto
     rivivali = 20    
@@ -204,6 +225,9 @@ while True:
     # Nuotti piirto
     pygame.draw.line(naytto,(200,200,200),(nuotti_x + 27,nuotti_y + 10), (nuotti_x + 27, nuotti_y + -50),4)
     pygame.draw.ellipse(naytto,(200,200,200), [nuotti_x, nuotti_y, 30, 20])
+
+    pisteet_teksti = fontti.render(f"Pisteet: {pisteet}", True, "white")
+    naytto.blit(pisteet_teksti,(0,naytto_korkeus - kosk_korkeus - pisteet_teksti.get_height()))
 
     pygame.display.flip()
 
