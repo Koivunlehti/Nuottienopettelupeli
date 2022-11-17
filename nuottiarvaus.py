@@ -2,6 +2,72 @@ import pygame
 import pygame.midi
 import random
 
+def Piirra_Viivasto(x, y, rivivali, viivastojen_vali):
+    for i in range(5):
+        pygame.draw.line(naytto, (200,200,200), ( x, y + i * rivivali ), ( naytto_leveys, y + i * rivivali ))
+
+    for i in range(5):
+        pygame.draw.line(naytto, (200,200,200), ( x, y + viivastojen_vali + i * rivivali ), ( naytto_leveys, y + viivastojen_vali + i * rivivali ))
+
+def Piirra_F_Avain(x, y, mittakaava = 1):
+    m = mittakaava
+    pygame.draw.lines(naytto,(200,200,200), False, [
+        ( x - 10 * m, y ),
+        ( x, y - 10 * m ),
+        ( x + 10 * m, y ),
+        ( x, y + 10 * m ),
+        ( x - 10 * m, y ),
+        ( x - 10 * m, y - 20 * m ),
+        ( x + 5 * m, y - 30 * m ),
+        ( x + 20 * m, y - 35 * m ),
+        ( x + 40 * m, y - 20 * m),
+        ( x + 45 * m, y ),
+        ( x + 40 * m, y + 20 * m ),
+        ( x + 25 * m, y + 40 * m),
+        ( x - 15 * m, y + 70 * m)], 4)
+    pygame.draw.circle(naytto, (200,200,200), [ x * m, y * m ], 10) # F-avaimen päätypallo
+    pygame.draw.circle(naytto, (200,200,200), [ x + 65 * m, y - 10 * m ], 5) # Ylimmäinen pallo
+    pygame.draw.circle(naytto, (200,200,200), [ x + 65 * m, y + 10 * m ], 5) # Alimmainen pallo
+
+def Piirra_G_Avain(x, y, mittakaava = 1):
+    m = mittakaava
+    pygame.draw.lines(naytto, (200,200,200), False, [
+        ( x, y ), 
+        ( x + 15 * m, y - 10 * m ), 
+        ( x + 5 * m, y - 20 * m ), 
+        ( x - 5 * m, y - 10 * m ), 
+        ( x, y ), 
+        ( x + 20 * m, y ), 
+        ( x + 30 * m, y - 20 * m ), 
+        ( x + 5 * m, y - 130 * m ), 
+        ( x + 20 * m, y - 155 * m ), 
+        ( x + 30 * m, y - 135 * m ), 
+        ( x + 20 * m, y - 120 * m ), 
+        ( x - 15 * m, y - 75 * m ), 
+        ( x - 10 * m, y - 45 * m ), 
+        ( x + 10 * m, y - 35 * m ), 
+        ( x + 35 * m, y - 40 * m ), 
+        ( x + 40 * m, y - 60 * m ), 
+        ( x + 30 * m, y - 75 * m ), 
+        ( x + 10 * m, y - 70 * m ), 
+        ( x + 5 * m, y - 55  * m ), 
+        ( x + 15 * m, y - 45 * m ), 
+        ( x + 25 * m, y - 55 * m )], 4)
+
+    pygame.draw.circle(naytto, (200,200,200), [ x + 5 * m, y - 10 * m ], 10) # G-avaimen päätypallo
+
+def Piirra_Ylennys(x, y, mittakaava = 1):
+    m = mittakaava
+    pygame.draw.line(naytto, (200,200,200), ( x - 25 * m, y - 5 * m ), ( x - 25 * m, y + 25 * m ), 3) # Vasen pystyviiva
+    pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y - 7 * m ), ( x - 15 * m, y + 23 * m ), 3) # Oikea pystyviiva
+    pygame.draw.line(naytto, (200,200,200), ( x - 35 * m, y + 5 * m ), ( x - 5 * m, y + 3 * m ), 4) # Ylin vaakaviiva
+    pygame.draw.line(naytto, (200,200,200), ( x - 35 * m, y + 15 * m ), ( x - 5 * m, y + 13 * m ), 4) # Alin vaakaviiva
+
+def Piirra_4_Osa_Nuotti(x, y, mittakaava = 1):
+    m = mittakaava
+    pygame.draw.line(naytto, (200,200,200), ( x + 27 * m, y + 10 * m ), ( x + 27 * m, y + -50 * m ), 4) # Varsiosa
+    pygame.draw.ellipse(naytto, (200,200,200), [ x, y, 30 * m, 20 * m ]) # Pääosa
+
 
 pygame.init()
 
@@ -91,8 +157,8 @@ while True:
             for kosketin in koskettimet_musta:
                 if kosketin[0].collidepoint(tapahtuma.pos):
                     musta_klikattu = True
-                    soitin.note_off(kosketin[1], 127,1)
-                    soitin.note_on(kosketin[1], 127,1)
+                    soitin.note_off(kosketin[1], 127, 1)
+                    soitin.note_on(kosketin[1], 127, 1)
 
                     #Painetun koskettimen vertaaminen haettavaan nuottiin
                     if kosketin[1] == nuotti_midi:
@@ -167,82 +233,29 @@ while True:
             pygame.draw.rect(naytto,(50,50,50),kosketin[0])
 
     # Rajaviivan piirto
-    pygame.draw.line(naytto,(222,40,20),(rajaviiva_x, rajaviiva_y), (rajaviiva_pituus_x ,rajaviiva_pituus_y),4)
+    pygame.draw.line(naytto, (222,40,20), (rajaviiva_x, rajaviiva_y), (rajaviiva_pituus_x ,rajaviiva_pituus_y), 4)
     
     # Arvausalue piirto
-    pygame.draw.rect(naytto,(6,148,3),[arvausalue_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
+    pygame.draw.rect(naytto, (6,148,3), [arvausalue_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
     
     # Viivaston piirto
-    rivivali = 20    
-    for i in range(5):
-        pygame.draw.line(naytto,(200,200,200),(0,100 + i * rivivali), (naytto_leveys,100 + i * rivivali))
-
-    for i in range(5):
-        pygame.draw.line(naytto,(200,200,200),(0,260 + i * rivivali), (naytto_leveys,260 + i * rivivali))
+    Piirra_Viivasto(0, 100,20, 160)
 
     # G-Nuottiavain piirto
-    g_alku_x = 50
-    g_alku_y = 220
-    mittakaava = 1
-    pygame.draw.lines(naytto, (200,200,200), False, [
-        (g_alku_x, g_alku_y), 
-        (g_alku_x+15 * mittakaava, g_alku_y-10 * mittakaava), 
-        (g_alku_x+5 * mittakaava, g_alku_y-20 * mittakaava), 
-        (g_alku_x-(5 * mittakaava), g_alku_y-10 * mittakaava), 
-        (g_alku_x, g_alku_y), 
-        (g_alku_x+20 * mittakaava, g_alku_y), 
-        (g_alku_x+30 * mittakaava, g_alku_y-20 * mittakaava), 
-        (g_alku_x+5 * mittakaava, g_alku_y-130 * mittakaava), 
-        (g_alku_x+20 * mittakaava, g_alku_y-155 * mittakaava), 
-        (g_alku_x+30 * mittakaava, g_alku_y-135 * mittakaava), 
-        (g_alku_x+20 * mittakaava, g_alku_y-120 * mittakaava), 
-        (g_alku_x-(15 * mittakaava), g_alku_y-75 * mittakaava), 
-        (g_alku_x-(10 * mittakaava), g_alku_y-45 * mittakaava), 
-        (g_alku_x+10 * mittakaava, g_alku_y-35 * mittakaava), 
-        (g_alku_x+35 * mittakaava, g_alku_y-40 * mittakaava), 
-        (g_alku_x+40 * mittakaava, g_alku_y-60 * mittakaava), 
-        (g_alku_x+30 * mittakaava, g_alku_y-75 * mittakaava), 
-        (g_alku_x+10 * mittakaava, g_alku_y-70 * mittakaava), 
-        (g_alku_x+5 * mittakaava, g_alku_y-55  * mittakaava), 
-        (g_alku_x+15 * mittakaava, g_alku_y-45 * mittakaava), 
-        (g_alku_x+25 * mittakaava, g_alku_y-55 * mittakaava)],4)
-
-    pygame.draw.circle(naytto, (200,200,200), [g_alku_x + 5 * mittakaava, g_alku_y - 10 * mittakaava], 10)
+    Piirra_G_Avain(50, 220)
 
     # F-Nuottiavain piirto
-    f_alku_x = 50
-    f_alku_y = 280
-    pygame.draw.lines(naytto,(200,200,200), False, [
-        (f_alku_x-10 * mittakaava,f_alku_y),
-        (f_alku_x,f_alku_y-10 * mittakaava),
-        (f_alku_x+10 * mittakaava,f_alku_y),
-        (f_alku_x,f_alku_y+10 * mittakaava),
-        (f_alku_x-10 * mittakaava,f_alku_y),
-        (f_alku_x-10 * mittakaava,f_alku_y-20 * mittakaava),
-        (f_alku_x+5 * mittakaava,f_alku_y-30 * mittakaava),
-        (f_alku_x+20 * mittakaava,f_alku_y-35 * mittakaava),
-        (f_alku_x+40 * mittakaava,f_alku_y-20 * mittakaava),
-        (f_alku_x+45 * mittakaava,f_alku_y),
-        (f_alku_x+40 * mittakaava,f_alku_y+20 * mittakaava),
-        (f_alku_x+25 * mittakaava,f_alku_y+40 * mittakaava),
-        (f_alku_x-15 * mittakaava,f_alku_y+70 * mittakaava)],4)
-    pygame.draw.circle(naytto, (200,200,200), [f_alku_x * mittakaava,f_alku_y * mittakaava], 10)
-    pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + -10 * mittakaava], 5)
-    pygame.draw.circle(naytto, (200,200,200), [f_alku_x + 65 * mittakaava,f_alku_y + 10 * mittakaava], 5)
-
+    Piirra_F_Avain(50, 280)
+    
     # Ylennysmerkin piirto
     if ylennetty:
-        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 25, nuotti_y - 5), (nuotti_x - 25, nuotti_y + 25), 3) # vasen pystyviiva
-        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 15, nuotti_y - 7), (nuotti_x - 15, nuotti_y + 23), 3) # oikea pystyviiva
-        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 35, nuotti_y + 5), (nuotti_x - 5, nuotti_y + 3), 4) # ylin vaakaviiva
-        pygame.draw.line(naytto,(200,200,200),(nuotti_x - 35, nuotti_y + 15), (nuotti_x - 5, nuotti_y + 13), 4) # alin vaakaviiva
+        Piirra_Ylennys(nuotti_x, nuotti_y)
     
     # Nuotti piirto
-    pygame.draw.line(naytto,(200,200,200),(nuotti_x + 27,nuotti_y + 10), (nuotti_x + 27, nuotti_y + -50),4)
-    pygame.draw.ellipse(naytto,(200,200,200), [nuotti_x, nuotti_y, 30, 20])
+    Piirra_4_Osa_Nuotti(nuotti_x, nuotti_y)
 
     pisteet_teksti = fontti.render(f"Pisteet: {pisteet}", True, "white")
-    naytto.blit(pisteet_teksti,(0,naytto_korkeus - kosk_korkeus - pisteet_teksti.get_height()))
+    naytto.blit(pisteet_teksti, (0, naytto_korkeus - kosk_korkeus - pisteet_teksti.get_height()))
 
     pygame.display.flip()
 
