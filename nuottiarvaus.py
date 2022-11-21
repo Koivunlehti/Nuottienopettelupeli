@@ -68,6 +68,82 @@ def Piirra_4_Osa_Nuotti(x, y, mittakaava = 1):
     pygame.draw.line(naytto, (200,200,200), ( x + 27 * m, y + 10 * m ), ( x + 27 * m, y + -50 * m ), 4) # Varsiosa
     pygame.draw.ellipse(naytto, (200,200,200), [ x, y, 30 * m, 20 * m ]) # Pääosa
 
+def Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus):
+    savelet = {}
+    alku = alku_midi
+    loppu = loppu_midi
+    kosk_maara_v = 0
+    kosk_maara_m = 0
+    
+    # Määritellään jokaisen midi-nuotin kohdalla minkä värinen kosketin se on
+    laskuri = 0
+    for i in range(128):
+        if laskuri < 5:
+            if laskuri % 2 == 0:
+                savelet[i] = "v"
+                if i >= alku and i <= loppu:
+                    kosk_maara_v += 1
+            else:
+                savelet[i] = "m"
+                if i >= alku and i <= loppu:
+                    kosk_maara_m += 1
+        else:
+            if laskuri % 2 == 0:
+                savelet[i] = "m"
+                if i >= alku and i <= loppu:
+                    kosk_maara_m += 1
+            else:
+                savelet[i] = "v"
+                if i >= alku and i <= loppu:
+                    kosk_maara_v += 1
+
+        if laskuri + 1 == 12:
+            laskuri = 0
+        else:
+            laskuri += 1
+
+    # Varmistetaan ettei koskettimisto lopu mustaan koskettimeen
+    if savelet[alku_midi] == "m":
+        alku -= 1
+        kosk_maara_v += 1
+    if savelet[loppu_midi] == "m":
+        loppu += 1
+        kosk_maara_v += 1
+
+    # Valkoisten koskettimien luominen 
+    kosk_vali = 2
+    kosk_leveys = (naytto_leveys - (kosk_maara_v * kosk_vali)) / kosk_maara_v
+    koskettimet_valkoinen = []
+
+    laskuri = 0
+    for i in range(alku, loppu + 1):
+        
+        if savelet[i] == "v":
+            koskettimet_valkoinen.append((pygame.Rect(kosk_vali + laskuri * kosk_leveys, naytto_korkeus - kosk_korkeus, kosk_leveys, kosk_korkeus), i))
+            kosk_vali += 2 
+            laskuri += 1
+
+    # Mustien koskettimien luominen
+    kosk_vali = kosk_leveys / 1.5
+    koskettimet_musta = []
+    
+    laskuri = 0
+    valk_perakkain = 0
+
+    for i in range(alku, loppu + 1):
+        if savelet[i] == "v":
+            valk_perakkain += 1
+        if savelet[i] == "m":
+            if valk_perakkain == 1:
+                kosk_vali += 2
+            else: 
+                kosk_vali += 4 + kosk_leveys
+            koskettimet_musta.append((pygame.Rect(kosk_vali + laskuri * kosk_leveys, naytto_korkeus -  2 * (kosk_korkeus / 2), kosk_leveys, kosk_korkeus / 2), i))
+            laskuri += 1
+            valk_perakkain = 0
+
+    return koskettimet_valkoinen, koskettimet_musta
+    
 
 pygame.init()
 
@@ -85,42 +161,17 @@ naytto = pygame.display.set_mode((naytto_leveys, naytto_korkeus))
 
 # Tekstit ja fontit
 fontti = pygame.font.SysFont("Georgia", 48, bold=True)
+fontti_2 = pygame.font.SysFont("Georgia", 18, bold=True)
 pisteet_teksti = fontti.render("Pisteet: 0", True, "white")
 
 # Kello
 kello = pygame.time.Clock()
 
 # Koskettimet
-koskettimet_valkoinen = []
-koskettimet_musta = []
-
-# Valkoisten koskettimien alustus
-midi = 36
-kosk_maara = 36
-kosk_vali = 2
-kosk_leveys = (naytto_leveys - (kosk_maara * kosk_vali)) / kosk_maara
+alku_midi = 36
+loppu_midi = 84
 kosk_korkeus = 100
-for i in range(kosk_maara):
-    koskettimet_valkoinen.append((pygame.Rect(kosk_vali + i * kosk_leveys, naytto_korkeus - kosk_korkeus, kosk_leveys, kosk_korkeus),midi))
-    kosk_vali += 2
-    if i in [2,6,9,13,16,20,23,27,30,34]:
-        midi += 1
-    else:   
-        midi += 2
-
-# Mustien koskettimien alustus
-midi = 37
-kosk_maara = 25
-kosk_vali = kosk_leveys / 1.5
-kosk_korkeus_musta = 50
-for i in range(kosk_maara):
-    koskettimet_musta.append((pygame.Rect(kosk_vali + i * kosk_leveys, naytto_korkeus -  2 * kosk_korkeus_musta, kosk_leveys, kosk_korkeus_musta), midi))
-    if i in [1,4,6,9,11,14,16,19,21,24]:
-        kosk_vali += 4 + kosk_leveys
-        midi += 3
-    else:
-        kosk_vali += 2
-        midi += 2
+koskettimet_valkoinen, koskettimet_musta = Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus)
 
 # Haettavan nuotin muuttujat
 luo_nuotti = True
@@ -216,18 +267,21 @@ while True:
     hiiri_mustan_paalla = False 
 
     for kosketin in koskettimet_musta:  # Tarkistetaan onko hiiri mustan koskettimen päällä. Tämä pitää huomioida koska mustat ja valkoiset koskettimet ovat päällekkäin
-        if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosk_leveys and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosk_korkeus_musta:
+        if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosketin[0].width and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosketin[0].height:
             hiiri_mustan_paalla = True
             break
 
     for kosketin in koskettimet_valkoinen:  # Piirretään varkoiset koskettimet ensin. Jos hiiri havaitaan koskettimen päällä, koskettimen väritystä muutetaan 
-        if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosk_leveys and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosk_korkeus and hiiri_mustan_paalla == False:
+        if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosketin[0].width and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosketin[0].height and hiiri_mustan_paalla == False:
             pygame.draw.rect(naytto,(140,140,140),kosketin[0])
         else:
             pygame.draw.rect(naytto,(240,240,240),kosketin[0])
-    
+        if kosketin[1] == 60:
+            teksti = fontti_2.render("C", True, "black")
+            naytto.blit(teksti, (kosketin[0].x, kosketin[0].y + 80))
+
     for kosketin in koskettimet_musta:  # Piirretään mustat koskettimet. Jos hiiri havaitaan koskettimen päällä, koskettimen väritystä muutetaan
-        if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosk_leveys and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosk_korkeus_musta:
+        if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosketin[0].width and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosketin[0].height:
             pygame.draw.rect(naytto,(140,140,140),kosketin[0])
         else:
             pygame.draw.rect(naytto,(50,50,50),kosketin[0])
