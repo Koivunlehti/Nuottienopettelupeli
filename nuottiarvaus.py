@@ -144,6 +144,35 @@ def Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_k
 
     return koskettimet_valkoinen, koskettimet_musta
     
+def Luo_Nuottien_Paikat(keski_c_y, vali):
+    paikat = {}
+    y = keski_c_y + 35 * vali   # lasketaan y-koordinaatin aloitusarvo perustuen annettuun keski_c y-koordinaattiin
+    
+    laskuri = 0
+    for i in range(128):
+        if laskuri < 5:
+            if laskuri % 2 == 0:    # valkoiset
+                    paikat[i] = (y,"v")
+                    if laskuri + 1 == 5:
+                        y -= vali
+            else:                   # mustat
+                    paikat[i] = (y,"m")
+                    y -= vali
+        else:
+            if laskuri % 2 == 0:    # mustat
+                    paikat[i] = (y,"m")
+                    y -= vali
+            else:                   # valkoiset 
+                    paikat[i] = (y,"v")
+                    if laskuri + 1 == 12:
+                        y -= vali
+            
+        if laskuri + 1 == 12:
+            laskuri = 0
+        else:
+            laskuri += 1
+            
+    return paikat
 
 pygame.init()
 
@@ -232,21 +261,21 @@ while True:
 
     # Nuotin luominen ja liikutus
     if luo_nuotti:
-        paikat_diskantti = [(60,190), (61,190,"#"), (62,180), (63,180,"#"), (64,170), (65,160), (66,160,"#"), (67,150), (68,150,"#"), (69,140), (70,140,"#"), (71,130), (72,120), (73,120,"#"), (74,110), (75,110,"#"), (76,100), (77,90), (78,90,"#"), (79,80), (80,80,"#"), (81,70), (82,70,"#"), (83,60), (84,50)] # (midi, y-koordinaatti)
-        paikat_basso = [(36,370), (37,370,"#"), (38,360), (39,360,"#"), (40,350), (41,340), (42,340,"#"), (43,330), (44,330,"#"), (45,320), (46,320,"#"), (47,310), (48,300), (49,300,"#"), (50,290), (51,290,"#"), (52,280), (53,270), (54,270,"#"), (55,260), (56,260,"#"), (57,250), (58,250,"#"), (59,240), (60,230)] # (midi, y-koordinaatti)
-        
+        paikat_diskantti = Luo_Nuottien_Paikat(190, 10)
+        paikat_basso = Luo_Nuottien_Paikat(230,10)
+        kosketin_vari = "v"
+
         if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
-            nuotti = paikat_diskantti[random.randrange(0,len(paikat_diskantti))]
-            nuotti_midi = nuotti[0]
-            nuotti_y = nuotti[1]
-            
+            nuotti_midi = random.randrange(60,loppu_midi)
+            nuotti_y = paikat_diskantti[nuotti_midi][0]
+            kosketin_vari = paikat_diskantti[nuotti_midi][1]
         else:
-            nuotti = paikat_basso[random.randrange(0,len(paikat_basso))]
-            nuotti_midi = nuotti[0]
-            nuotti_y = nuotti[1]    
-        
+            nuotti_midi = random.randrange(alku_midi,60)
+            nuotti_y = paikat_basso[nuotti_midi][0]
+            kosketin_vari = paikat_diskantti[nuotti_midi][1]
+
         # Jos nuotti on mustalla koskettimella, piirretään ylennysmerkki
-        if len(nuotti) >= 3:
+        if kosketin_vari == "m":
             ylennetty = True
         else:
             ylennetty = False
@@ -293,7 +322,7 @@ while True:
     pygame.draw.rect(naytto, (6,148,3), [arvausalue_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
     
     # Viivaston piirto
-    Piirra_Viivasto(0, 100,20, 160)
+    Piirra_Viivasto(0, 100, 20, 160)
 
     # G-Nuottiavain piirto
     Piirra_G_Avain(50, 220)
