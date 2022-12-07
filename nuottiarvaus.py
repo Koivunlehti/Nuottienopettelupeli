@@ -3,11 +3,21 @@ import pygame.midi
 import random
 
 def Piirra_Viivasto(x, y, rivivali, viivastojen_vali):
+    viivasto_y_paikat = {}
+
+    paikat = []
     for i in range(5):
         pygame.draw.line(naytto, (200,200,200), ( x, y + i * rivivali ), ( naytto_leveys, y + i * rivivali ))
-
+        paikat.append(y + i * rivivali)
+    viivasto_y_paikat["diskantti"] = paikat
+    
+    paikat = []
     for i in range(5):
         pygame.draw.line(naytto, (200,200,200), ( x, y + viivastojen_vali + i * rivivali ), ( naytto_leveys, y + viivastojen_vali + i * rivivali ))
+        paikat.append(y + viivastojen_vali + i * rivivali)
+    viivasto_y_paikat["basso"] = paikat
+
+    return viivasto_y_paikat
 
 def Piirra_F_Avain(x, y, mittakaava = 1):
     m = mittakaava
@@ -67,6 +77,14 @@ def Piirra_4_Osa_Nuotti(x, y, mittakaava = 1):
     m = mittakaava
     pygame.draw.line(naytto, (200,200,200), ( x + 27 * m, y + 10 * m ), ( x + 27 * m, y + -50 * m ), 4) # Varsiosa
     pygame.draw.ellipse(naytto, (200,200,200), [ x, y, 30 * m, 20 * m ]) # Pääosa
+
+def Piirra_Apuviivat(x , y, pituus, rivivali, maara, suunta, mittakaava = 1):
+    for i in range(maara):
+        if suunta > 0:
+            y += i * rivivali
+        else:
+            y -= i * rivivali
+        pygame.draw.line(naytto, (200,200,200), ( x, y ), ( x + pituus, y ))
 
 def Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus):
     savelet = {}
@@ -208,6 +226,7 @@ ylennetty = False
 nuotti_x = 0
 nuotti_y = 0
 nuotti_midi = 0
+diskantti = True
 
 # Rajaviivan sijainti
 rajaviiva_x = 150
@@ -266,13 +285,15 @@ while True:
         kosketin_vari = "v"
 
         if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
-            nuotti_midi = random.randrange(60,loppu_midi)
+            nuotti_midi = random.randrange(57,loppu_midi)
             nuotti_y = paikat_diskantti[nuotti_midi][0]
             kosketin_vari = paikat_diskantti[nuotti_midi][1]
+            diskantti = True
         else:
-            nuotti_midi = random.randrange(alku_midi,60)
+            nuotti_midi = random.randrange(alku_midi,65)
             nuotti_y = paikat_basso[nuotti_midi][0]
             kosketin_vari = paikat_diskantti[nuotti_midi][1]
+            diskantti = False
 
         # Jos nuotti on mustalla koskettimella, piirretään ylennysmerkki
         if kosketin_vari == "m":
@@ -282,6 +303,7 @@ while True:
 
         nuotti_x = naytto_leveys
         luo_nuotti = False
+
     else:
         if nuotti_x > rajaviiva_x:
             nuotti_x -= 1
@@ -330,6 +352,26 @@ while True:
     # F-Nuottiavain piirto
     Piirra_F_Avain(50, 280)
     
+    # Mahdollisten apuviivojen piirto
+    if diskantti:
+        if nuotti_y < 60:
+            Piirra_Apuviivat(nuotti_x - 10, 80, 50, 20, 2, -1)
+        elif nuotti_y < 80:
+            Piirra_Apuviivat(nuotti_x - 10, 80, 50, 20, 1, -1)
+        elif nuotti_y > 190:
+            Piirra_Apuviivat(nuotti_x - 10, 200, 50, 20, 2, 1)
+        elif nuotti_y > 170:
+            Piirra_Apuviivat(nuotti_x - 10, 200, 50, 20, 1, 1)
+    else:
+        if nuotti_y < 220:
+             Piirra_Apuviivat(nuotti_x - 10, 240, 50, 20, 2, -1)
+        elif nuotti_y < 240:
+            Piirra_Apuviivat(nuotti_x - 10, 240, 50, 20, 1, -1)
+        elif nuotti_y > 350:
+            Piirra_Apuviivat(nuotti_x - 10, 360, 50, 20, 2, 1)
+        elif nuotti_y > 330:
+            Piirra_Apuviivat(nuotti_x - 10, 360, 50, 20, 1, 1)
+
     # Ylennysmerkin piirto
     if ylennetty:
         Piirra_Ylennys(nuotti_x, nuotti_y)
