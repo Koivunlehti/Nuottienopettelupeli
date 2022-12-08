@@ -75,8 +75,8 @@ def Piirra_Ylennys(x, y, mittakaava = 1):
 
 def Piirra_4_Osa_Nuotti(x, y, mittakaava = 1):
     m = mittakaava
-    pygame.draw.line(naytto, (200,200,200), ( x + 27 * m, y + 10 * m ), ( x + 27 * m, y + -50 * m ), 4) # Varsiosa
-    pygame.draw.ellipse(naytto, (200,200,200), [ x, y, 30 * m, 20 * m ]) # Pääosa
+    pygame.draw.line(naytto, (200,200,200), ( x + 27 * m, y ), ( x + 27 * m, y + -50 * m ), 4) # Varsiosa
+    pygame.draw.ellipse(naytto, (200,200,200), [ x, y - 10 * m, 30 * m, 20 * m ]) # Pääosa
 
 def Piirra_Apuviivat(x , y, pituus, rivivali, maara, suunta, mittakaava = 1):
     for i in range(maara):
@@ -280,8 +280,8 @@ while True:
 
     # Nuotin luominen ja liikutus
     if luo_nuotti:
-        paikat_diskantti = Luo_Nuottien_Paikat(190, 10)
-        paikat_basso = Luo_Nuottien_Paikat(230,10)
+        paikat_diskantti = Luo_Nuottien_Paikat(200, 10)
+        paikat_basso = Luo_Nuottien_Paikat(240, 10)
         kosketin_vari = "v"
 
         if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
@@ -292,7 +292,7 @@ while True:
         else:
             nuotti_midi = random.randrange(alku_midi,65)
             nuotti_y = paikat_basso[nuotti_midi][0]
-            kosketin_vari = paikat_diskantti[nuotti_midi][1]
+            kosketin_vari = paikat_basso[nuotti_midi][1]
             diskantti = False
 
         # Jos nuotti on mustalla koskettimella, piirretään ylennysmerkki
@@ -354,22 +354,22 @@ while True:
     
     # Mahdollisten apuviivojen piirto
     if diskantti:
-        if nuotti_y < 60:
+        if nuotti_y < 70:
             Piirra_Apuviivat(nuotti_x - 10, 80, 50, 20, 2, -1)
-        elif nuotti_y < 80:
+        elif nuotti_y < 90:
             Piirra_Apuviivat(nuotti_x - 10, 80, 50, 20, 1, -1)
-        elif nuotti_y > 190:
+        elif nuotti_y > 200:
             Piirra_Apuviivat(nuotti_x - 10, 200, 50, 20, 2, 1)
-        elif nuotti_y > 170:
+        elif nuotti_y > 180:
             Piirra_Apuviivat(nuotti_x - 10, 200, 50, 20, 1, 1)
     else:
-        if nuotti_y < 220:
+        if nuotti_y < 230:
              Piirra_Apuviivat(nuotti_x - 10, 240, 50, 20, 2, -1)
-        elif nuotti_y < 240:
+        elif nuotti_y < 250:
             Piirra_Apuviivat(nuotti_x - 10, 240, 50, 20, 1, -1)
-        elif nuotti_y > 350:
+        elif nuotti_y > 360:
             Piirra_Apuviivat(nuotti_x - 10, 360, 50, 20, 2, 1)
-        elif nuotti_y > 330:
+        elif nuotti_y > 340:
             Piirra_Apuviivat(nuotti_x - 10, 360, 50, 20, 1, 1)
 
     # Ylennysmerkin piirto
