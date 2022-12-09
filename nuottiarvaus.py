@@ -2,22 +2,20 @@ import pygame
 import pygame.midi
 import random
 
-def Piirra_Viivasto(x, y, rivivali, viivastojen_vali):
-    viivasto_y_paikat = {}
-
+def Piirra_Viivasto(x, keski_c_y, rivivali, diskantti):
+    y = keski_c_y
     paikat = []
+
+    if diskantti:   # Lasketaanko ylös vai alaspäin y-akselilla
+        rivivali *= -1
+    
+    y += rivivali # Muutetaan y-arvoa yhden rivin verran koska keski_c on ensimmäinen "ei näkyvä" viiva
+
     for i in range(5):
         pygame.draw.line(naytto, (200,200,200), ( x, y + i * rivivali ), ( naytto_leveys, y + i * rivivali ))
         paikat.append(y + i * rivivali)
-    viivasto_y_paikat["diskantti"] = paikat
-    
-    paikat = []
-    for i in range(5):
-        pygame.draw.line(naytto, (200,200,200), ( x, y + viivastojen_vali + i * rivivali ), ( naytto_leveys, y + viivastojen_vali + i * rivivali ))
-        paikat.append(y + viivastojen_vali + i * rivivali)
-    viivasto_y_paikat["basso"] = paikat
 
-    return viivasto_y_paikat
+    return paikat
 
 def Piirra_F_Avain(x, y, mittakaava = 1):
     m = mittakaava
@@ -42,36 +40,37 @@ def Piirra_F_Avain(x, y, mittakaava = 1):
 def Piirra_G_Avain(x, y, mittakaava = 1):
     m = mittakaava
     pygame.draw.lines(naytto, (200,200,200), False, [
-        ( x, y ), 
-        ( x + 15 * m, y - 10 * m ), 
-        ( x + 5 * m, y - 20 * m ), 
-        ( x - 5 * m, y - 10 * m ), 
-        ( x, y ), 
-        ( x + 20 * m, y ), 
-        ( x + 30 * m, y - 20 * m ), 
-        ( x + 5 * m, y - 130 * m ), 
-        ( x + 20 * m, y - 155 * m ), 
-        ( x + 30 * m, y - 135 * m ), 
-        ( x + 20 * m, y - 120 * m ), 
-        ( x - 15 * m, y - 75 * m ), 
-        ( x - 10 * m, y - 45 * m ), 
-        ( x + 10 * m, y - 35 * m ), 
-        ( x + 35 * m, y - 40 * m ), 
-        ( x + 40 * m, y - 60 * m ), 
+        ( x, y + 60 * m ), 
+        ( x + 15 * m, y + 50 * m ), 
+        ( x + 5 * m, y + 40 * m ), 
+        ( x - 5 * m, y + 50 * m ), 
+        ( x, y + 60 * m ), 
+        ( x + 20 * m, y + 60 * m ), 
+        ( x + 30 * m, y + 40 * m ), 
+        ( x + 5 * m, y - 70 * m ), 
+        ( x + 20 * m, y - 95 * m ), 
         ( x + 30 * m, y - 75 * m ), 
-        ( x + 10 * m, y - 70 * m ), 
-        ( x + 5 * m, y - 55  * m ), 
-        ( x + 15 * m, y - 45 * m ), 
-        ( x + 25 * m, y - 55 * m )], 4)
+        ( x + 20 * m, y - 60 * m ), 
+        ( x - 15 * m, y - 15 * m ), 
+        ( x - 10 * m, y + 15 * m ), 
+        ( x + 10 * m, y + 25 * m ), 
+        ( x + 35 * m, y + 20 * m ), 
+        ( x + 40 * m, y ), 
+        ( x + 30 * m, y - 15 * m ), 
+        ( x + 10 * m, y - 10 * m ), 
+        ( x + 5 * m, y + 5  * m ), 
+        ( x + 15 * m, y + 15 * m ), 
+        ( x + 25 * m, y + 5 * m )], 4)
 
-    pygame.draw.circle(naytto, (200,200,200), [ x + 5 * m, y - 10 * m ], 10) # G-avaimen päätypallo
+    pygame.draw.circle(naytto, (200,200,200), [ x + 5 * m, y + 50 * m ], 10) # G-avaimen päätypallo
 
-def Piirra_Ylennys(x, y, mittakaava = 1):
+def Piirra_Ylennys(x, y, x_korjaus = 0, mittakaava = 1):
     m = mittakaava
-    pygame.draw.line(naytto, (200,200,200), ( x - 25 * m, y - 5 * m ), ( x - 25 * m, y + 25 * m ), 3) # Vasen pystyviiva
-    pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y - 7 * m ), ( x - 15 * m, y + 23 * m ), 3) # Oikea pystyviiva
-    pygame.draw.line(naytto, (200,200,200), ( x - 35 * m, y + 5 * m ), ( x - 5 * m, y + 3 * m ), 4) # Ylin vaakaviiva
-    pygame.draw.line(naytto, (200,200,200), ( x - 35 * m, y + 15 * m ), ( x - 5 * m, y + 13 * m ), 4) # Alin vaakaviiva
+    x += x_korjaus * m
+    pygame.draw.line(naytto, (200,200,200), ( x - 5 * m, y - 13 * m ), ( x - 5 * m, y + 17 * m ), 3) # Vasen pystyviiva
+    pygame.draw.line(naytto, (200,200,200), ( x + 5 * m, y - 15 * m ), ( x + 5 * m, y + 15 * m ), 3) # Oikea pystyviiva
+    pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y - 5 * m ), ( x + 15 * m, y - 7 * m ), 4) # Ylin vaakaviiva
+    pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y + 7 * m ), ( x + 15 * m, y + 5 * m ), 4) # Alin vaakaviiva
 
 def Piirra_4_Osa_Nuotti(x, y, mittakaava = 1):
     m = mittakaava
@@ -81,9 +80,9 @@ def Piirra_4_Osa_Nuotti(x, y, mittakaava = 1):
 def Piirra_Apuviivat(x , y, pituus, rivivali, maara, suunta, mittakaava = 1):
     for i in range(maara):
         if suunta > 0:
-            y += i * rivivali
+            y += i + 1 * rivivali
         else:
-            y -= i * rivivali
+            y -= i + 1 * rivivali
         pygame.draw.line(naytto, (200,200,200), ( x, y ), ( x + pituus, y ))
 
 def Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus):
@@ -214,6 +213,12 @@ pisteet_teksti = fontti.render("Pisteet: 0", True, "white")
 # Kello
 kello = pygame.time.Clock()
 
+# Viivasto
+diskantti_keski_c_y = 200
+basso_keski_c_y =  260
+viivasto_rivivali = 20
+viivasto_paikat = {"diskantti": Piirra_Viivasto(0, diskantti_keski_c_y, viivasto_rivivali, True), "basso": Piirra_Viivasto(0, basso_keski_c_y, viivasto_rivivali, False)}
+
 # Koskettimet
 alku_midi = 36
 loppu_midi = 84
@@ -280,8 +285,8 @@ while True:
 
     # Nuotin luominen ja liikutus
     if luo_nuotti:
-        paikat_diskantti = Luo_Nuottien_Paikat(200, 10)
-        paikat_basso = Luo_Nuottien_Paikat(240, 10)
+        paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
+        paikat_basso = Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
         kosketin_vari = "v"
 
         if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
@@ -344,37 +349,38 @@ while True:
     pygame.draw.rect(naytto, (6,148,3), [arvausalue_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
     
     # Viivaston piirto
-    Piirra_Viivasto(0, 100, 20, 160)
+    Piirra_Viivasto(0, diskantti_keski_c_y, viivasto_rivivali, True)
+    Piirra_Viivasto(0, basso_keski_c_y, viivasto_rivivali, False)
 
     # G-Nuottiavain piirto
-    Piirra_G_Avain(50, 220)
+    Piirra_G_Avain(50, viivasto_paikat["diskantti"][1])
 
     # F-Nuottiavain piirto
-    Piirra_F_Avain(50, 280)
+    Piirra_F_Avain(50, viivasto_paikat["basso"][1])
     
     # Mahdollisten apuviivojen piirto
     if diskantti:
-        if nuotti_y < 70:
-            Piirra_Apuviivat(nuotti_x - 10, 80, 50, 20, 2, -1)
-        elif nuotti_y < 90:
-            Piirra_Apuviivat(nuotti_x - 10, 80, 50, 20, 1, -1)
-        elif nuotti_y > 200:
-            Piirra_Apuviivat(nuotti_x - 10, 200, 50, 20, 2, 1)
-        elif nuotti_y > 180:
-            Piirra_Apuviivat(nuotti_x - 10, 200, 50, 20, 1, 1)
+        if nuotti_y < viivasto_paikat["diskantti"][4] - viivasto_rivivali - viivasto_rivivali / 2:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["diskantti"][4] , 50, viivasto_rivivali, 2, -1)
+        elif nuotti_y < viivasto_paikat["diskantti"][4] - viivasto_rivivali / 2:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["diskantti"][4], 50, viivasto_rivivali, 1, -1)
+        elif nuotti_y > viivasto_paikat["diskantti"][0] + viivasto_rivivali:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["diskantti"][0], 50, viivasto_rivivali, 2, 1)
+        elif nuotti_y > viivasto_paikat["diskantti"][0]:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["diskantti"][0], 50, viivasto_rivivali, 1, 1)
     else:
-        if nuotti_y < 230:
-             Piirra_Apuviivat(nuotti_x - 10, 240, 50, 20, 2, -1)
-        elif nuotti_y < 250:
-            Piirra_Apuviivat(nuotti_x - 10, 240, 50, 20, 1, -1)
-        elif nuotti_y > 360:
-            Piirra_Apuviivat(nuotti_x - 10, 360, 50, 20, 2, 1)
-        elif nuotti_y > 340:
-            Piirra_Apuviivat(nuotti_x - 10, 360, 50, 20, 1, 1)
+        if nuotti_y < viivasto_paikat["basso"][0] - viivasto_rivivali - viivasto_rivivali / 2:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["basso"][0], 50, viivasto_rivivali, 2, -1)
+        elif nuotti_y < viivasto_paikat["basso"][0] - viivasto_rivivali / 2:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["basso"][0], 50, viivasto_rivivali, 1, -1)
+        elif nuotti_y > viivasto_paikat["basso"][4] + viivasto_rivivali:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["basso"][4], 50, viivasto_rivivali, 2, 1)
+        elif nuotti_y > viivasto_paikat["basso"][4]:
+            Piirra_Apuviivat(nuotti_x - 10, viivasto_paikat["basso"][4], 50, viivasto_rivivali, 1, 1)
 
     # Ylennysmerkin piirto
     if ylennetty:
-        Piirra_Ylennys(nuotti_x, nuotti_y)
+        Piirra_Ylennys(nuotti_x, nuotti_y, -20)
     
     # Nuotti piirto
     Piirra_4_Osa_Nuotti(nuotti_x, nuotti_y)
