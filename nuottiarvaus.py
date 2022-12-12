@@ -235,15 +235,16 @@ diskantti = True
 
 # Rajaviivan sijainti
 rajaviiva_x = 150
-rajaviiva_y = 50
+rajaviiva_y = 0
 rajaviiva_pituus_x = rajaviiva_x
-rajaviiva_pituus_y = 400
+rajaviiva_pituus_y = 450
+rajaviiva_paksuus = 4
 
 # Arvausalue
-arvausalue_x = rajaviiva_x + 4
-arvausalue_y = 50
+arvausalue_x = rajaviiva_x + rajaviiva_paksuus
+arvausalue_y = rajaviiva_y
 arvausalue_leveys = 350
-arvausalue_korkeus = 350
+arvausalue_korkeus = rajaviiva_pituus_y - rajaviiva_y
 
 # Pisteet
 pisteet = 0
@@ -270,6 +271,7 @@ while True:
                             luo_nuotti = True
                             pisteet += 1
                     break
+
             if musta_klikattu == False:
                 for kosketin in koskettimet_valkoinen:
                     if kosketin[0].collidepoint(tapahtuma.pos):
@@ -287,24 +289,35 @@ while True:
     if luo_nuotti:
         paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
         paikat_basso = Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
+        erikoisylennykset = [4,11,16,23,28,35,40,47,52,59,64,71,76,83,88,95,100,107,112,119,124]
         kosketin_vari = "v"
+        ylennetty = False
 
         if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
             nuotti_midi = random.randrange(57,loppu_midi)
             nuotti_y = paikat_diskantti[nuotti_midi][0]
             kosketin_vari = paikat_diskantti[nuotti_midi][1]
+            if nuotti_midi in erikoisylennykset and random.randrange(0,2) == 1:  # arvotaan mahdollinen E tai H nuotin ylennys
+                if nuotti_midi + 1 <= loppu_midi:
+                    nuotti_midi += 1
+                    ylennetty = True
             diskantti = True
         else:
             nuotti_midi = random.randrange(alku_midi,65)
             nuotti_y = paikat_basso[nuotti_midi][0]
             kosketin_vari = paikat_basso[nuotti_midi][1]
+            if nuotti_midi in erikoisylennykset and random.randrange(0,2) == 1:  # arvotaan mahdollinen E tai H nuotin ylennys
+                if nuotti_midi + 1 <= 65:
+                    nuotti_midi += 1
+                    ylennetty = True
             diskantti = False
 
         # Jos nuotti on mustalla koskettimella, piirretään ylennysmerkki
-        if kosketin_vari == "m":
-            ylennetty = True
-        else:
-            ylennetty = False
+        if ylennetty == False:
+            if kosketin_vari == "m":
+                ylennetty = True
+            else:
+                ylennetty = False
 
         nuotti_x = naytto_leveys
         luo_nuotti = False
@@ -343,7 +356,7 @@ while True:
             pygame.draw.rect(naytto,(50,50,50),kosketin[0])
 
     # Rajaviivan piirto
-    pygame.draw.line(naytto, (222,40,20), (rajaviiva_x, rajaviiva_y), (rajaviiva_pituus_x ,rajaviiva_pituus_y), 4)
+    pygame.draw.line(naytto, (222,40,20), (rajaviiva_x, rajaviiva_y), (rajaviiva_pituus_x ,rajaviiva_pituus_y), rajaviiva_paksuus)
     
     # Arvausalue piirto
     pygame.draw.rect(naytto, (6,148,3), [arvausalue_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
