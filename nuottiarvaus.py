@@ -72,6 +72,17 @@ def Piirra_Ylennys(x, y, x_korjaus = 0, mittakaava = 1):
     pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y - 5 * m ), ( x + 15 * m, y - 7 * m ), 4) # Ylin vaakaviiva
     pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y + 7 * m ), ( x + 15 * m, y + 5 * m ), 4) # Alin vaakaviiva
 
+def Piirra_Alennus(x,y,x_korjaus = 0, mittakaava = 1):
+    m = mittakaava
+    x += x_korjaus * m
+    pygame.draw.lines(naytto, (200,200,200), False, [
+        ( x - 10 * m, y ), 
+        ( x, y - 10 * m ),
+        ( x + 10 * m, y - 10 * m ),
+        ( x, y + 10 * m ),
+        ( x - 10 * m, y + 10 * m ),
+        ( x - 10 * m, y - 40 * m )], 3)
+
 def Piirra_4_Osa_Nuotti(x, y, mittakaava = 1):
     m = mittakaava
     pygame.draw.line(naytto, (200,200,200), ( x + 27 * m, y ), ( x + 27 * m, y + -50 * m ), 4) # Varsiosa
@@ -228,6 +239,7 @@ koskettimet_valkoinen, koskettimet_musta = Luo_Koskettimet(alku_midi, loppu_midi
 # Haettavan nuotin muuttujat
 luo_nuotti = True
 ylennetty = False
+alennettu = False
 nuotti_x = 0
 nuotti_y = 0
 nuotti_midi = 0
@@ -289,35 +301,43 @@ while True:
     if luo_nuotti:
         paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
         paikat_basso = Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
-        erikoisylennykset = [4,11,16,23,28,35,40,47,52,59,64,71,76,83,88,95,100,107,112,119,124]
         kosketin_vari = "v"
         ylennetty = False
+        alennettu = False
 
-        if random.randrange(0,2) == 0:  # Arvotaan diskantti ja bassorivin välillä. 0 = diskanttirivi, 1 = bassorivi  
+             # Arvotaan nuotin sävel diskantti- tai bassoviivastolta
+        if random.randrange(0,2) == 0:
             nuotti_midi = random.randrange(57,loppu_midi)
-            nuotti_y = paikat_diskantti[nuotti_midi][0]
             kosketin_vari = paikat_diskantti[nuotti_midi][1]
-            if nuotti_midi in erikoisylennykset and random.randrange(0,2) == 1:  # arvotaan mahdollinen E tai H nuotin ylennys
-                if nuotti_midi + 1 <= loppu_midi:
-                    nuotti_midi += 1
-                    ylennetty = True
+            if kosketin_vari == "m":
+                nuotti_midi -= 1
+                kosketin_vari = paikat_diskantti[nuotti_midi][1]
+            nuotti_y = paikat_diskantti[nuotti_midi][0]
             diskantti = True
         else:
             nuotti_midi = random.randrange(alku_midi,65)
-            nuotti_y = paikat_basso[nuotti_midi][0]
             kosketin_vari = paikat_basso[nuotti_midi][1]
-            if nuotti_midi in erikoisylennykset and random.randrange(0,2) == 1:  # arvotaan mahdollinen E tai H nuotin ylennys
-                if nuotti_midi + 1 <= 65:
-                    nuotti_midi += 1
-                    ylennetty = True
+            if kosketin_vari == "m":
+                nuotti_midi -= 1
+                kosketin_vari = paikat_basso[nuotti_midi][1]
+            nuotti_y = paikat_basso[nuotti_midi][0]
             diskantti = False
 
-        # Jos nuotti on mustalla koskettimella, piirretään ylennysmerkki
-        if ylennetty == False:
-            if kosketin_vari == "m":
+        muutos = random.randrange(0,3)      # Arvotaan ylennetäänkö, alennetaanko vai pidetäänkö nuotti normaalina
+        if muutos == 1:
+            if diskantti and nuotti_midi + 1 <= loppu_midi:
+                nuotti_midi += 1
                 ylennetty = True
-            else:
-                ylennetty = False
+            elif not diskantti and nuotti_midi + 1 <= 65:
+                nuotti_midi += 1
+                ylennetty = True
+        elif muutos == 2:
+            if diskantti and nuotti_midi - 1 >= 57:
+                nuotti_midi -= 1
+                alennettu = True
+            elif not diskantti and nuotti_midi - 1 >= alku_midi:
+                nuotti_midi -= 1
+                alennettu = True
 
         nuotti_x = naytto_leveys
         luo_nuotti = False
@@ -394,7 +414,9 @@ while True:
     # Ylennysmerkin piirto
     if ylennetty:
         Piirra_Ylennys(nuotti_x, nuotti_y, -20)
-    
+    if alennettu:
+        Piirra_Alennus(nuotti_x, nuotti_y, -20)
+
     # Nuotti piirto
     Piirra_4_Osa_Nuotti(nuotti_x, nuotti_y)
 
