@@ -96,6 +96,44 @@ def Piirra_Apuviivat(x , y, pituus, rivivali, maara, suunta, mittakaava = 1):
             y -= i + 1 * rivivali
         pygame.draw.line(naytto, (200,200,200), ( x, y ), ( x + pituus, y ))
 
+def Piirra_Savellaji(x, savellaji, paikat, diskantti = True, mittakaava = 1):
+    #                       F#  C#  G#  D#  A#  E#  H#                        
+    ylennykset_diskantti = [77, 72, 79, 74, 69, 76, 71]
+    ylennykset_basso =     [53, 48, 55, 50, 45, 52, 47]
+
+    #                       B   Eb  Ab  Db  Gb  Cb  Fb
+    alennukset_diskantti = [71, 76, 69, 74, 67, 72, 65]
+    alennukset_basso =     [47, 52, 45, 50, 43, 48, 41]
+
+    duurit = {"Cb":-7, "Gb":-6, "Db":-5, "Ab":-4, "Eb":-3, "B":-2 , "F":-1 , "C":0, "G":1, "D":2, "A":3 , "E":4 , "H":5 , "F#":6, "C#":7}
+    mollit = {"ab":-7, "eb":-6, "b":-5, "f":-4, "c":-3, "g":-2 , "d":-1 , "a":0, "e":1, "h":2, "f#":3 , "c#":4 , "g#":5 , "d#":6, "a#":7}
+    
+    taso = 0
+    if savellaji in duurit:
+        taso = duurit[savellaji]
+    elif savellaji in mollit:
+        taso = mollit[savellaji]
+    
+    tila_x = x
+
+    if taso > 0:
+        for i in range(0,taso):
+            if diskantti:
+                Piirra_Ylennys(x, paikat[ylennykset_diskantti[i]][0], 0, mittakaava)
+            else:
+                Piirra_Ylennys(x, paikat[ylennykset_basso[i]][0], 0, mittakaava)
+            x += 20 * mittakaava
+    elif taso < 0:
+        taso = taso * -1
+        for i in range(0,taso):
+            if diskantti:
+                Piirra_Alennus(x, paikat[alennukset_diskantti[i]][0], 0, mittakaava)
+            else:
+                Piirra_Alennus(x, paikat[alennukset_basso[i]][0], 0, mittakaava)
+            x += 20 * mittakaava
+
+    return x - tila_x
+
 def Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus):
     savelet = {}
     alku = alku_midi
@@ -130,7 +168,7 @@ def Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_k
         else:
             laskuri += 1
 
-    # Varmistetaan ettei koskettimisto lopu mustaan koskettimeen
+    # Varmistetaan ettei koskettimisto ala tai lopu mustaan koskettimeen
     if savelet[alku_midi] == "m":
         alku -= 1
         kosk_maara_v += 1
@@ -202,6 +240,68 @@ def Luo_Nuottien_Paikat(keski_c_y, vali):
             
     return paikat
 
+def Tarkista_Savellaji_Vaikutus(savellaji, midi_savel):
+    savelet = []
+    duurit = {"Cb":-7, "Gb":-6, "Db":-5, "Ab":-4, "Eb":-3, "B":-2 , "F":-1 , "C":0, "G":1, "D":2, "A":3 , "E":4 , "H":5 , "F#":6, "C#":7}
+    mollit = {"ab":-7, "eb":-6, "b":-5, "f":-4, "c":-3, "g":-2 , "d":-1 , "a":0, "e":1, "h":2, "f#":3 , "c#":4 , "g#":5 , "d#":6, "a#":7}
+
+    # Tarkistetaan onko annettu savellaji olemassa ja montako ylennys tai alennusmerkkiä sillä on
+    taso = 0
+    if savellaji in duurit:
+        taso = duurit[savellaji]
+    elif savellaji in mollit:
+        taso = mollit[savellaji]
+
+    # Apumetodi
+    def Luo_Savelet(savel, taulukko):
+        while savel < 128:
+            taulukko.append(savel)
+            savel += 12
+        return taulukko
+
+    # Kerätään midisäveliä vertaustaulukkoon riippuen siitä, kuinka montaa säveltä sävellaji ylentää tai alentaa
+    if taso > 0:
+        for i in range(taso):
+            if i + 1 == 1:
+                savelet = Luo_Savelet(5, savelet) # F
+            elif i + 1 == 2:
+                savelet = Luo_Savelet(0, savelet) # C
+            elif i + 1 == 3:
+                savelet = Luo_Savelet(7, savelet) # G
+            elif i + 1 == 4:
+                savelet = Luo_Savelet(2, savelet) # D
+            elif i + 1 == 5:
+                savelet = Luo_Savelet(9, savelet) # A
+            elif i + 1 == 6:
+                savelet = Luo_Savelet(4, savelet) # E
+            elif i + 1 == 7:
+                savelet = Luo_Savelet(11, savelet) # H
+
+        if midi_savel in savelet:   # Löytyykö haettu midisävel ylennettyjen sävelten joukosta
+            return "y"
+
+    elif taso < 0:
+        for i in range(0, taso, -1):
+            if i - 1 == -1:
+                savelet = Luo_Savelet(11, savelet) # H
+            elif i - 1 == -2:
+                savelet = Luo_Savelet(4, savelet) # E
+            elif i - 1 == -3:
+                savelet = Luo_Savelet(9, savelet) # A
+            elif i - 1 == -4:
+                savelet = Luo_Savelet(2, savelet) # D
+            elif i - 1 == -5:
+                savelet = Luo_Savelet(7, savelet) # G
+            elif i - 1 == -6:
+                savelet = Luo_Savelet(0, savelet) # C
+            elif i - 1 == -7:
+                savelet = Luo_Savelet(5, savelet) # F
+
+        if midi_savel in savelet:   # Löytyykö haettu midisävel alennettujen sävelten joukosta
+            return "a"
+    
+    return ""
+
 pygame.init()
 
 # Midi soittimen alustus
@@ -237,6 +337,8 @@ kosk_korkeus = 100
 koskettimet_valkoinen, koskettimet_musta = Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus)
 
 # Haettavan nuotin muuttujat
+paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
+paikat_basso = Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
 luo_nuotti = True
 ylennetty = False
 alennettu = False
@@ -261,7 +363,7 @@ arvausalue_korkeus = rajaviiva_pituus_y - rajaviiva_y
 # Pisteet
 pisteet = 0
 
-# pelisilmukka
+# Pelisilmukka
 while True:
     naytto.fill((0,0,0))
     
@@ -299,14 +401,11 @@ while True:
 
     # Nuotin luominen ja liikutus
     if luo_nuotti:
-        paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
-        paikat_basso = Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
         kosketin_vari = "v"
         ylennetty = False
         alennettu = False
-
-             # Arvotaan nuotin sävel diskantti- tai bassoviivastolta
-        if random.randrange(0,2) == 0:
+    
+        if random.randrange(0,2) == 0:       # Arvotaan nuotin sävel diskantti- tai bassoviivastolta
             nuotti_midi = random.randrange(57,loppu_midi)
             kosketin_vari = paikat_diskantti[nuotti_midi][1]
             if kosketin_vari == "m":
@@ -390,7 +489,11 @@ while True:
 
     # F-Nuottiavain piirto
     Piirra_F_Avain(50, viivasto_paikat["basso"][1])
-    
+
+    # Sävellajin merkkien piirto
+    Piirra_Savellaji(150, "C", paikat_diskantti, True)
+    Piirra_Savellaji(150, "C", paikat_basso, False)
+
     # Mahdollisten apuviivojen piirto
     if diskantti:
         if nuotti_y < viivasto_paikat["diskantti"][4] - viivasto_rivivali - viivasto_rivivali / 2:
@@ -420,6 +523,7 @@ while True:
     # Nuotti piirto
     Piirra_4_Osa_Nuotti(nuotti_x, nuotti_y)
 
+    # Pisteiden piirto
     pisteet_teksti = fontti.render(f"Pisteet: {pisteet}", True, "white")
     naytto.blit(pisteet_teksti, (0, naytto_korkeus - kosk_korkeus - pisteet_teksti.get_height()))
 
