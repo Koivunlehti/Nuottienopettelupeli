@@ -47,7 +47,7 @@ def Piirra_Viivasto(naytto:pygame.Surface, x:int, keski_c_y:int, rivivali:int, d
 
     return paikat
 
-def Piirra_F_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1):
+def Piirra_F_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:float = 1):
     """Piirtää F-avaimen näytölle
 
         Parametrit
@@ -61,7 +61,7 @@ def Piirra_F_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1):
         y : int
             Alkukoordinaatti näytön y-akselilla
 
-        mittakaava : int, valinnainen
+        mittakaava : float, valinnainen
             Määrittää kuinka suurena tai pienenä F-avain piirretään. (oletusarvo on 1)
         """
     
@@ -84,7 +84,7 @@ def Piirra_F_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1):
     pygame.draw.circle(naytto, (200,200,200), [ x + 65 * m, y - 10 * m ], 5) # Ylimmäinen pallo
     pygame.draw.circle(naytto, (200,200,200), [ x + 65 * m, y + 10 * m ], 5) # Alimmainen pallo
 
-def Piirra_G_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1):
+def Piirra_G_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:float = 1):
     """Piirtää G-avaimen näytölle
 
         Parametrit
@@ -98,7 +98,7 @@ def Piirra_G_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1):
         y : int
             Alkukoordinaatti näytön y-akselilla
 
-        mittakaava : int, valinnainen
+        mittakaava : float, valinnainen
             Määrittää kuinka suurena tai pienenä G-avain piirretään. (oletusarvo on 1)
         """
     
@@ -128,7 +128,7 @@ def Piirra_G_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1):
 
     pygame.draw.circle(naytto, (200,200,200), [ x + 5 * m, y + 50 * m ], 10) # G-avaimen päätypallo
 
-def Piirra_Ylennys(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mittakaava:int = 1):
+def Piirra_Ylennys(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mittakaava:float = 1):
     """Piirtää ylennysmerkin näytölle
 
         Parametrit
@@ -145,7 +145,7 @@ def Piirra_Ylennys(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mitta
         x_korjaus : int, valinnainen
             Muuttaa aloituspaikkaa x-akselilla (oletusarvo on 0)    
 
-        mittakaava : int, valinnainen
+        mittakaava : float, valinnainen
             Määrittää kuinka suurena tai pienenä ylennysmerkki piirretään. (oletusarvo on 1)
         """
 
@@ -156,7 +156,7 @@ def Piirra_Ylennys(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mitta
     pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y - 5 * m ), ( x + 15 * m, y - 7 * m ), 4) # Ylin vaakaviiva
     pygame.draw.line(naytto, (200,200,200), ( x - 15 * m, y + 7 * m ), ( x + 15 * m, y + 5 * m ), 4) # Alin vaakaviiva
 
-def Piirra_Alennus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mittakaava:int = 1):
+def Piirra_Alennus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mittakaava:float = 1):
     """Piirtää alennusmerkin näytölle
 
         Parametrit
@@ -173,7 +173,7 @@ def Piirra_Alennus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mitta
         x_korjaus : int, valinnainen
             Muuttaa aloituspaikkaa x-akselilla (oletusarvo on 0)    
 
-        mittakaava : int, valinnainen
+        mittakaava : float, valinnainen
             Määrittää kuinka suurena tai pienenä alennusmerkki piirretään. (oletusarvo on 1)
         """
     
@@ -186,8 +186,38 @@ def Piirra_Alennus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mitta
         ( x, y + 10 * m ),
         ( x - 10 * m, y + 10 * m ),
         ( x - 10 * m, y - 40 * m )], 3)
-    
-def Piirra_4_Osa_Nuotti(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1):
+
+def palautus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0 ,mittakaava:float = 1):
+    """ Piirtää palautusmerkin näytölle.
+
+        Palautusmerkki kumoaa nuotin ylennyksen tai alennuksen aiheuttaman muutoksen.
+
+        Parametrit
+        ----------
+        naytto : pygame.Surface
+            Näyttönä toimiva pygame.Surface objekti 
+
+        x : int
+            Alkukoordinaatti näytön x-akselilla.
+        
+        y : int
+            Alkukoordinaatti näytön y-akselilla
+        
+        x_korjaus : int, valinnainen
+            Muuttaa aloituspaikkaa x-akselilla (oletusarvo on 0)    
+
+        mittakaava : float, valinnainen
+            Määrittää kuinka suurena tai pienenä palautusmerkki piirretään. (oletusarvo on 1)
+    """
+    m = mittakaava
+    x += x_korjaus * m
+
+    pygame.draw.line(naytto, (200,200,200), (x - 5 * m, y + 10 * m), (x - 5 * m, y - 30 * m), 2) # vasen pystyviiva
+    pygame.draw.line(naytto, (200,200,200), (x + 5 * m, y - 10 * m), (x + 5 * m, y + 30 * m), 2) # oikea pystyviiva
+    pygame.draw.line(naytto, (200,200,200), (x - 10 * m, y - 5 * m), (x + 10 * m, y - 9 * m), 4) # ylin vaakaviiva
+    pygame.draw.line(naytto, (200,200,200), (x - 10 * m, y + 9 * m), (x + 10 * m, y + 5 * m), 4) # alin vaakaviiva
+
+def Piirra_4_Osa_Nuotti(naytto:pygame.Surface, x:int, y:int, mittakaava:float = 1):
     """Piirtää neljäsosanuotin näytölle
 
         Parametrit
@@ -201,7 +231,7 @@ def Piirra_4_Osa_Nuotti(naytto:pygame.Surface, x:int, y:int, mittakaava:int = 1)
         y : int
             Alkukoordinaatti näytön y-akselilla
 
-        mittakaava : int, valinnainen
+        mittakaava : float, valinnainen
             Määrittää kuinka suurena tai pienenä nuotti piirretään. (oletusarvo on 1)
         """
     m = mittakaava
@@ -244,7 +274,7 @@ def Piirra_Apuviivat(naytto:pygame.Surface, x:int , y:int, pituus:int, rivivali:
             y -= i + 1 * rivivali
         pygame.draw.line(naytto, (200,200,200), ( x, y ), ( x + pituus, y ))
 
-def Piirra_Savellaji(naytto:pygame.Surface, x:int, savellaji:str, paikat:dict, diskantti:bool = True, mittakaava:int = 1):
+def Piirra_Savellaji(naytto:pygame.Surface, x:int, savellaji:str, paikat:dict, diskantti:bool = True, mittakaava:float = 1):
     """Piirtää sävellajin näytölle
 
         Sävellaji koostuu maksimissaan 7:stä ylennys- tai alennusmerkistä, jotka piirretään muodostelmaan tietyssä järjestyksessä.
@@ -267,7 +297,7 @@ def Piirra_Savellaji(naytto:pygame.Surface, x:int, savellaji:str, paikat:dict, d
         diskantti: bool, valinnainen
             Määrittää onko kyseessä diskantti vai basso viivasto. (oletusarvo on True)
         
-        mittakaava : int, valinnainen
+        mittakaava : float, valinnainen
             Määrittää kuinka suurena tai pienenä sävellajin merkit piirretään. (oletusarvo on 1)
 
         Palauttaa 

@@ -181,9 +181,7 @@ soitin.set_instrument(127,5)
 
 # Näytön alustus
 pygame.display.set_caption("Nuottiarvaus")
-naytto_leveys = 640
-naytto_korkeus = 600
-naytto = pygame.display.set_mode((naytto_leveys, naytto_korkeus))
+naytto = pygame.display.set_mode((640, 600))
 
 # Tekstit ja fontit
 fontti = pygame.font.SysFont("Georgia", 48, bold=True)
@@ -203,7 +201,7 @@ viivasto_paikat = {"diskantti": piirto.Piirra_Viivasto(naytto, 0, diskantti_kesk
 alku_midi = 36
 loppu_midi = 84
 kosk_korkeus = 100
-koskettimet_valkoinen, koskettimet_musta = Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus)
+koskettimet_valkoinen, koskettimet_musta = Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto.get_width(), naytto.get_height())
 
 # Haettavan nuotin muuttujat
 paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
@@ -291,7 +289,8 @@ while True:
             nuotti_y = paikat_basso[nuotti_midi][0]
             diskantti = False
 
-        muutos = random.randrange(0,3)      # Arvotaan ylennetäänkö, alennetaanko vai pidetäänkö nuotti normaalina
+        muutos = random.randrange(0,3)      # Arvotaan ylennetäänkö, alennetaanko vai pidetäänkö nuotti normaalina. (0 = normaali, 1 = ylennetty, 2 = alennettu)
+        
         if muutos == 1:
             if diskantti and nuotti_midi + 1 <= loppu_midi:
                 nuotti_midi += 1
@@ -307,7 +306,7 @@ while True:
                 nuotti_midi -= 1
                 alennettu = True
 
-        nuotti_x = naytto_leveys
+        nuotti_x = naytto.get_width()
         luo_nuotti = False
 
     else:
@@ -394,7 +393,7 @@ while True:
 
     # Pisteiden piirto
     pisteet_teksti = fontti.render(f"Pisteet: {pisteet}", True, "white")
-    naytto.blit(pisteet_teksti, (0, naytto_korkeus - kosk_korkeus - pisteet_teksti.get_height()))
+    naytto.blit(pisteet_teksti, (0, naytto.get_height() - kosk_korkeus - pisteet_teksti.get_height()))
 
     pygame.display.flip()
 
