@@ -181,7 +181,7 @@ soitin.set_instrument(127,5)
 
 # Näytön alustus
 pygame.display.set_caption("Nuottiarvaus")
-naytto = pygame.display.set_mode((640, 600))
+naytto = pygame.display.set_mode((800, 600))
 
 # Tekstit ja fontit
 fontti = pygame.font.SysFont("Georgia", 48, bold=True)
@@ -207,17 +207,19 @@ koskettimet_valkoinen, koskettimet_musta = Luo_Koskettimet(alku_midi, loppu_midi
 paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
 paikat_basso = Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
 luo_nuotti = True
-ylennetty = False
-alennettu = False
+piirra_ylennetty = False
+piirra_alennettu = False
+piirra_palautus = False
 nuotti_x = 0
 nuotti_y = 0
 nuotti_midi = 0
+midi_diskantti_alaraja = 57
+midi_basso_ylaraja = 65
 diskantti = True
 
 # Rajaviivan sijainti
 rajaviiva_x = 150
 rajaviiva_y = 0
-rajaviiva_pituus_x = rajaviiva_x
 rajaviiva_pituus_y = 450
 rajaviiva_paksuus = 4
 
@@ -229,6 +231,10 @@ arvausalue_korkeus = rajaviiva_pituus_y - rajaviiva_y
 
 # Pisteet
 pisteet = 0
+
+# Sävellaji
+savellaji = "C"
+savellajin_vaatima_tila_x = piirto.Piirra_Savellaji(naytto, 150, savellaji, paikat_diskantti, True, True)
 
 # Pelisilmukka
 while True:
@@ -248,7 +254,7 @@ while True:
 
                     #Painetun koskettimen vertaaminen haettavaan nuottiin
                     if kosketin[1] == nuotti_midi:
-                        if nuotti_x <= arvausalue_x + arvausalue_leveys:
+                        if nuotti_x <= arvausalue_x + arvausalue_leveys + savellajin_vaatima_tila_x:
                             luo_nuotti = True
                             pisteet += 1
                     break
@@ -261,7 +267,7 @@ while True:
 
                         # Painetun koskettimen vertaaminen haettavaan nuottiin
                         if kosketin[1] == nuotti_midi:
-                            if nuotti_x <= arvausalue_x + arvausalue_leveys:
+                            if nuotti_x <= arvausalue_x + arvausalue_leveys + savellajin_vaatima_tila_x:
                                 luo_nuotti = True
                                 pisteet += 1
                         break
@@ -269,10 +275,11 @@ while True:
     # Nuotin luominen ja liikutus
     if luo_nuotti:
         kosketin_vari = "v"
-        ylennetty = False
-        alennettu = False
-    
-        if random.randrange(0,2) == 0:       # Arvotaan nuotin sävel diskantti- tai bassoviivastolta
+        piirra_ylennetty = False
+        piirra_alennettu = False
+        piirra_palautus = False
+
+        if random.randrange(0,2) == 0:       # Arvotaan nuotin sävel diskantti- tai bassoviivastolta. (0 = diskantti, 1 = basso)
             nuotti_midi = random.randrange(57,loppu_midi)
             kosketin_vari = paikat_diskantti[nuotti_midi][1]
             if kosketin_vari == "m":
@@ -289,28 +296,59 @@ while True:
             nuotti_y = paikat_basso[nuotti_midi][0]
             diskantti = False
 
-        muutos = random.randrange(0,3)      # Arvotaan ylennetäänkö, alennetaanko vai pidetäänkö nuotti normaalina. (0 = normaali, 1 = ylennetty, 2 = alennettu)
-        
-        if muutos == 1:
+        savellaji_vaikutus = Tarkista_Savellaji_Vaikutus(savellaji, nuotti_midi)
+
+        # Lisätään sävellajin vaikutus nuotteihin. Tarkistetaan myös että sävel ei mene asetettujen midi arvo rajojen yli
+        if savellaji_vaikutus == "y":
             if diskantti and nuotti_midi + 1 <= loppu_midi:
                 nuotti_midi += 1
-                ylennetty = True
-            elif not diskantti and nuotti_midi + 1 <= 65:
+            elif not diskantti and nuotti_midi + 1 <= midi_basso_ylaraja:
                 nuotti_midi += 1
-                ylennetty = True
-        elif muutos == 2:
-            if diskantti and nuotti_midi - 1 >= 57:
+            else:
+                piirra_palautus = True
+        elif savellaji_vaikutus == "a":
+            if diskantti and nuotti_midi - 1 >= midi_diskantti_alaraja:
                 nuotti_midi -= 1
-                alennettu = True
             elif not diskantti and nuotti_midi - 1 >= alku_midi:
                 nuotti_midi -= 1
-                alennettu = True
+            else:
+                piirra_palautus = True
 
-        nuotti_x = naytto.get_width()
+        if piirra_palautus == False:
+            muutos = random.randrange(0, 3)      # Arvotaan ylennetäänkö, alennetaanko vai pidetäänkö nuotti normaalina. (0 = normaali, 1 = ylennetty, 2 = alennettu)
+            if muutos == 1:
+                if diskantti and nuotti_midi + 1 <= loppu_midi:
+                    nuotti_midi += 1
+                    if savellaji_vaikutus == "a":
+                        piirra_palautus = True
+                    else:
+                        piirra_ylennetty = True
+                elif not diskantti and nuotti_midi + 1 <= midi_basso_ylaraja:
+                    nuotti_midi += 1
+                    if savellaji_vaikutus == "a":
+                        piirra_palautus = True
+                    else:
+                        piirra_ylennetty = True
+            elif muutos == 2:
+                if diskantti and nuotti_midi - 1 >= midi_diskantti_alaraja:
+                    nuotti_midi -= 1
+                    if savellaji_vaikutus == "y":
+                        piirra_palautus = True
+                    else:
+                        piirra_alennettu = True
+                elif not diskantti and nuotti_midi - 1 >= alku_midi:
+                    nuotti_midi -= 1
+                    if savellaji_vaikutus == "y":
+                        piirra_palautus = True
+                    else:
+                        piirra_alennettu = True
+
+        # nuotin luontietäisyyys x-akselilla
+        nuotti_x = 150 + savellajin_vaatima_tila_x + arvausalue_leveys + 100
         luo_nuotti = False
 
     else:
-        if nuotti_x > rajaviiva_x:
+        if nuotti_x > rajaviiva_x + savellajin_vaatima_tila_x:
             nuotti_x -= 1
         else:
             luo_nuotti = True
@@ -342,11 +380,13 @@ while True:
         else:
             pygame.draw.rect(naytto,(50,50,50),kosketin[0])
 
+    savellajin_vaatima_tila_x = piirto.Piirra_Savellaji(naytto, 150, savellaji, paikat_diskantti, True, True)
+
     # Rajaviivan piirto
-    pygame.draw.line(naytto, (222,40,20), (rajaviiva_x, rajaviiva_y), (rajaviiva_pituus_x ,rajaviiva_pituus_y), rajaviiva_paksuus)
+    pygame.draw.line(naytto, (222,40,20), (rajaviiva_x + savellajin_vaatima_tila_x, rajaviiva_y), (rajaviiva_x + savellajin_vaatima_tila_x ,rajaviiva_pituus_y), rajaviiva_paksuus)
     
     # Arvausalue piirto
-    pygame.draw.rect(naytto, (6,148,3), [arvausalue_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
+    pygame.draw.rect(naytto, (6,148,3), [arvausalue_x + savellajin_vaatima_tila_x, arvausalue_y, arvausalue_leveys, arvausalue_korkeus])
     
     # Viivaston piirto
     piirto.Piirra_Viivasto(naytto, 0, diskantti_keski_c_y, viivasto_rivivali, True)
@@ -359,8 +399,8 @@ while True:
     piirto.Piirra_F_Avain(naytto, 50, viivasto_paikat["basso"][1])
 
     # Sävellajin merkkien piirto
-    piirto.Piirra_Savellaji(naytto,150, "C", paikat_diskantti, True)
-    piirto.Piirra_Savellaji(naytto,150, "C", paikat_basso, False)
+    piirto.Piirra_Savellaji(naytto,150, savellaji, paikat_diskantti, True)
+    piirto.Piirra_Savellaji(naytto,150, savellaji, paikat_basso, False)
 
     # Mahdollisten apuviivojen piirto
     if diskantti:
@@ -383,10 +423,12 @@ while True:
             piirto.Piirra_Apuviivat(naytto, nuotti_x - 10, viivasto_paikat["basso"][4], 50, viivasto_rivivali, 1, True)
 
     # Ylennysmerkin piirto
-    if ylennetty:
+    if piirra_ylennetty:
         piirto.Piirra_Ylennys(naytto, nuotti_x, nuotti_y, -20)
-    if alennettu:
+    if piirra_alennettu:
         piirto.Piirra_Alennus(naytto, nuotti_x, nuotti_y, -20)
+    if piirra_palautus:
+        piirto.Piirra_Palautus(naytto, nuotti_x, nuotti_y, -20)
 
     # Nuotti piirto
     piirto.Piirra_4_Osa_Nuotti(naytto, nuotti_x, nuotti_y)

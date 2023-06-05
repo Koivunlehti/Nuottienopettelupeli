@@ -187,7 +187,7 @@ def Piirra_Alennus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0, mitta
         ( x - 10 * m, y + 10 * m ),
         ( x - 10 * m, y - 40 * m )], 3)
 
-def palautus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0 ,mittakaava:float = 1):
+def Piirra_Palautus(naytto:pygame.Surface, x:int, y:int, x_korjaus:int = 0 ,mittakaava:float = 1):
     """ Piirtää palautusmerkin näytölle.
 
         Palautusmerkki kumoaa nuotin ylennyksen tai alennuksen aiheuttaman muutoksen.
@@ -274,7 +274,7 @@ def Piirra_Apuviivat(naytto:pygame.Surface, x:int , y:int, pituus:int, rivivali:
             y -= i + 1 * rivivali
         pygame.draw.line(naytto, (200,200,200), ( x, y ), ( x + pituus, y ))
 
-def Piirra_Savellaji(naytto:pygame.Surface, x:int, savellaji:str, paikat:dict, diskantti:bool = True, mittakaava:float = 1):
+def Piirra_Savellaji(naytto:pygame.Surface, x:int, savellaji:str, paikat:dict, diskantti:bool = True, ei_piirtoa:bool = False, mittakaava:float = 1):
     """Piirtää sävellajin näytölle
 
         Sävellaji koostuu maksimissaan 7:stä ylennys- tai alennusmerkistä, jotka piirretään muodostelmaan tietyssä järjestyksessä.
@@ -297,6 +297,10 @@ def Piirra_Savellaji(naytto:pygame.Surface, x:int, savellaji:str, paikat:dict, d
         diskantti: bool, valinnainen
             Määrittää onko kyseessä diskantti vai basso viivasto. (oletusarvo on True)
         
+        ei_piirtoa: bool, valinnainen
+            Määrittää piirretäänkö merkit näytölle vai ei. (oletusarvo on False)
+            Tätä voidaan käyttää, kun halutaan tietää sävellajin vaatima tila x-akselilla ilman varsinaista näytölle piirtoa.
+
         mittakaava : float, valinnainen
             Määrittää kuinka suurena tai pienenä sävellajin merkit piirretään. (oletusarvo on 1)
 
@@ -327,18 +331,20 @@ def Piirra_Savellaji(naytto:pygame.Surface, x:int, savellaji:str, paikat:dict, d
 
     if taso > 0:
         for i in range(0,taso):
-            if diskantti:
-                Piirra_Ylennys(naytto, x, paikat[ylennykset_diskantti[i]][0], 0, mittakaava)
-            else:
-                Piirra_Ylennys(naytto, x, paikat[ylennykset_basso[i]][0], 0, mittakaava)
+            if ei_piirtoa == False:
+                if diskantti:
+                    Piirra_Ylennys(naytto, x, paikat[ylennykset_diskantti[i]][0], 0, mittakaava)
+                else:
+                    Piirra_Ylennys(naytto, x, paikat[ylennykset_basso[i]][0], 0, mittakaava)
             x += 20 * mittakaava
     elif taso < 0:
         taso = taso * -1
         for i in range(0,taso):
-            if diskantti:
-                Piirra_Alennus(naytto, x, paikat[alennukset_diskantti[i]][0], 0, mittakaava)
-            else:
-                Piirra_Alennus(naytto, x, paikat[alennukset_basso[i]][0], 0, mittakaava)
+            if ei_piirtoa == False:
+                if diskantti:
+                    Piirra_Alennus(naytto, x, paikat[alennukset_diskantti[i]][0], 0, mittakaava)
+                else:
+                    Piirra_Alennus(naytto, x, paikat[alennukset_basso[i]][0], 0, mittakaava)
             x += 20 * mittakaava
 
     return x - tila_x
