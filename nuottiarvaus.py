@@ -1,83 +1,7 @@
 import pygame
 import pygame.midi
 import random
-import piirto
-
-def Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto_leveys, naytto_korkeus):
-    savelet = {}
-    alku = alku_midi
-    loppu = loppu_midi
-    kosk_maara_v = 0
-    kosk_maara_m = 0
-    
-    # Määritellään jokaisen midi-nuotin kohdalla minkä värinen kosketin se on
-    laskuri = 0
-    for i in range(128):
-        if laskuri < 5:
-            if laskuri % 2 == 0:
-                savelet[i] = "v"
-                if i >= alku and i <= loppu:
-                    kosk_maara_v += 1
-            else:
-                savelet[i] = "m"
-                if i >= alku and i <= loppu:
-                    kosk_maara_m += 1
-        else:
-            if laskuri % 2 == 0:
-                savelet[i] = "m"
-                if i >= alku and i <= loppu:
-                    kosk_maara_m += 1
-            else:
-                savelet[i] = "v"
-                if i >= alku and i <= loppu:
-                    kosk_maara_v += 1
-
-        if laskuri + 1 == 12:
-            laskuri = 0
-        else:
-            laskuri += 1
-
-    # Varmistetaan ettei koskettimisto ala tai lopu mustaan koskettimeen
-    if savelet[alku_midi] == "m":
-        alku -= 1
-        kosk_maara_v += 1
-    if savelet[loppu_midi] == "m":
-        loppu += 1
-        kosk_maara_v += 1
-
-    # Valkoisten koskettimien luominen 
-    kosk_vali = 2
-    kosk_leveys = (naytto_leveys - (kosk_maara_v * kosk_vali)) / kosk_maara_v
-    koskettimet_valkoinen = []
-
-    laskuri = 0
-    for i in range(alku, loppu + 1):
-        
-        if savelet[i] == "v":
-            koskettimet_valkoinen.append((pygame.Rect(kosk_vali + laskuri * kosk_leveys, naytto_korkeus - kosk_korkeus, kosk_leveys, kosk_korkeus), i))
-            kosk_vali += 2 
-            laskuri += 1
-
-    # Mustien koskettimien luominen
-    kosk_vali = kosk_leveys / 1.5
-    koskettimet_musta = []
-    
-    laskuri = 0
-    valk_perakkain = 0
-
-    for i in range(alku, loppu + 1):
-        if savelet[i] == "v":
-            valk_perakkain += 1
-        if savelet[i] == "m":
-            if valk_perakkain == 1:
-                kosk_vali += 2
-            else: 
-                kosk_vali += 4 + kosk_leveys
-            koskettimet_musta.append((pygame.Rect(kosk_vali + laskuri * kosk_leveys, naytto_korkeus -  2 * (kosk_korkeus / 2), kosk_leveys, kosk_korkeus / 2), i))
-            laskuri += 1
-            valk_perakkain = 0
-
-    return koskettimet_valkoinen, koskettimet_musta
+import piirto, koskettimet
     
 def Luo_Nuottien_Paikat(keski_c_y, vali):
     paikat = {}
@@ -201,7 +125,7 @@ viivasto_paikat = {"diskantti": piirto.Piirra_Viivasto(naytto, 0, diskantti_kesk
 alku_midi = 36
 loppu_midi = 84
 kosk_korkeus = 100
-koskettimet_valkoinen, koskettimet_musta = Luo_Koskettimet(alku_midi, loppu_midi, kosk_korkeus, naytto.get_width(), naytto.get_height())
+koskettimet_valkoinen, koskettimet_musta = koskettimet.Luo_Koskettimet(naytto, alku_midi, loppu_midi, kosk_korkeus)
 
 # Haettavan nuotin muuttujat
 paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
@@ -365,7 +289,7 @@ while True:
             hiiri_mustan_paalla = True
             break
 
-    for kosketin in koskettimet_valkoinen:  # Piirretään varkoiset koskettimet ensin. Jos hiiri havaitaan koskettimen päällä, koskettimen väritystä muutetaan 
+    for kosketin in koskettimet_valkoinen:  # Piirretään valkoiset koskettimet ensin. Jos hiiri havaitaan koskettimen päällä, koskettimen väritystä muutetaan 
         if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosketin[0].width and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosketin[0].height and hiiri_mustan_paalla == False:
             pygame.draw.rect(naytto,(140,140,140),kosketin[0])
         else:
