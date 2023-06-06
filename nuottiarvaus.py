@@ -1,99 +1,7 @@
 import pygame
 import pygame.midi
 import random
-import piirto, koskettimet
-    
-def Luo_Nuottien_Paikat(keski_c_y, vali):
-    paikat = {}
-    y = keski_c_y + 35 * vali   # lasketaan y-koordinaatin aloitusarvo perustuen annettuun keski_c y-koordinaattiin
-    
-    laskuri = 0
-    for i in range(128):
-        if laskuri < 5:
-            if laskuri % 2 == 0:    # valkoiset
-                    paikat[i] = (y,"v")
-                    if laskuri + 1 == 5:
-                        y -= vali
-            else:                   # mustat
-                    paikat[i] = (y,"m")
-                    y -= vali
-        else:
-            if laskuri % 2 == 0:    # mustat
-                    paikat[i] = (y,"m")
-                    y -= vali
-            else:                   # valkoiset 
-                    paikat[i] = (y,"v")
-                    if laskuri + 1 == 12:
-                        y -= vali
-            
-        if laskuri + 1 == 12:
-            laskuri = 0
-        else:
-            laskuri += 1
-            
-    return paikat
-
-def Tarkista_Savellaji_Vaikutus(savellaji, midi_savel):
-    savelet = []
-    duurit = {"Cb":-7, "Gb":-6, "Db":-5, "Ab":-4, "Eb":-3, "B":-2 , "F":-1 , "C":0, "G":1, "D":2, "A":3 , "E":4 , "H":5 , "F#":6, "C#":7}
-    mollit = {"ab":-7, "eb":-6, "b":-5, "f":-4, "c":-3, "g":-2 , "d":-1 , "a":0, "e":1, "h":2, "f#":3 , "c#":4 , "g#":5 , "d#":6, "a#":7}
-
-    # Tarkistetaan onko annettu savellaji olemassa ja montako ylennys tai alennusmerkkiä sillä on
-    taso = 0
-    if savellaji in duurit:
-        taso = duurit[savellaji]
-    elif savellaji in mollit:
-        taso = mollit[savellaji]
-
-    # Apumetodi
-    def Luo_Savelet(savel, taulukko):
-        while savel < 128:
-            taulukko.append(savel)
-            savel += 12
-        return taulukko
-
-    # Kerätään midisäveliä vertaustaulukkoon riippuen siitä, kuinka montaa säveltä sävellaji ylentää tai alentaa
-    if taso > 0:
-        for i in range(taso):
-            if i + 1 == 1:
-                savelet = Luo_Savelet(5, savelet) # F
-            elif i + 1 == 2:
-                savelet = Luo_Savelet(0, savelet) # C
-            elif i + 1 == 3:
-                savelet = Luo_Savelet(7, savelet) # G
-            elif i + 1 == 4:
-                savelet = Luo_Savelet(2, savelet) # D
-            elif i + 1 == 5:
-                savelet = Luo_Savelet(9, savelet) # A
-            elif i + 1 == 6:
-                savelet = Luo_Savelet(4, savelet) # E
-            elif i + 1 == 7:
-                savelet = Luo_Savelet(11, savelet) # H
-
-        if midi_savel in savelet:   # Löytyykö haettu midisävel ylennettyjen sävelten joukosta
-            return "y"
-
-    elif taso < 0:
-        for i in range(0, taso, -1):
-            if i - 1 == -1:
-                savelet = Luo_Savelet(11, savelet) # H
-            elif i - 1 == -2:
-                savelet = Luo_Savelet(4, savelet) # E
-            elif i - 1 == -3:
-                savelet = Luo_Savelet(9, savelet) # A
-            elif i - 1 == -4:
-                savelet = Luo_Savelet(2, savelet) # D
-            elif i - 1 == -5:
-                savelet = Luo_Savelet(7, savelet) # G
-            elif i - 1 == -6:
-                savelet = Luo_Savelet(0, savelet) # C
-            elif i - 1 == -7:
-                savelet = Luo_Savelet(5, savelet) # F
-
-        if midi_savel in savelet:   # Löytyykö haettu midisävel alennettujen sävelten joukosta
-            return "a"
-    
-    return ""
+import piirto, koskettimet, apufunktiot
 
 pygame.init()
 
@@ -128,8 +36,8 @@ kosk_korkeus = 100
 koskettimet_valkoinen, koskettimet_musta = koskettimet.Luo_Koskettimet(naytto, alku_midi, loppu_midi, kosk_korkeus)
 
 # Haettavan nuotin muuttujat
-paikat_diskantti = Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
-paikat_basso = Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
+paikat_diskantti = apufunktiot.Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
+paikat_basso = apufunktiot.Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
 luo_nuotti = True
 piirra_ylennetty = False
 piirra_alennettu = False
@@ -220,7 +128,7 @@ while True:
             nuotti_y = paikat_basso[nuotti_midi][0]
             diskantti = False
 
-        savellaji_vaikutus = Tarkista_Savellaji_Vaikutus(savellaji, nuotti_midi)
+        savellaji_vaikutus = apufunktiot.Tarkista_Savellaji_Vaikutus(savellaji, nuotti_midi)
 
         # Lisätään sävellajin vaikutus nuotteihin. Tarkistetaan myös että sävel ei mene asetettujen midi arvo rajojen yli
         if savellaji_vaikutus == "y":
