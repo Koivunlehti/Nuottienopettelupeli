@@ -126,3 +126,44 @@ def Tarkista_Savellaji_Vaikutus(savellaji, midi_savel):
             return "a"
     
     return ""
+
+def Savel_Tekstina(midi_arvo, savelen_tila = ""):
+    """ Palauttaa pyydetyn sävelen tekstimuodossa
+
+    Parametrit
+    ----------
+    midi_arvo : int
+        Sävelen midiarvo
+
+    savelen_tila : str
+        Sävelen tila. Tämä vaikuttaa siihen, miten sävel nimetään.
+        "y" = ylennetty, "a" = alennettu, "" = normaali
+            
+    Palauttaa
+    ---------
+    tuple
+        Palauttaa sävelen nimen ja oktaavin muodossa (sävelen nimi, oktaavi)
+    """
+    savelet = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","H"]
+    savelet_ylen = ["H#","C#","D","D#","E","E#","F#","G","G#","A","A#","H"]
+    savelet_alen = ["C","Db","D","Eb","Fb","F","Gb","G","Ab","A","Hb","Cb"]
+
+    laskuri = 0
+    oktaavi = -1
+    savel = ""
+    for i in range(0,128):
+        if i == midi_arvo:
+            if savelen_tila == "y":
+                savel = savelet_ylen[laskuri]
+            elif savelen_tila == "a":
+                savel = savelet_alen[laskuri]
+            else:
+                savel = savelet[laskuri]
+            break
+        if laskuri >= 11:
+            laskuri = 0
+            oktaavi += 1
+        else:
+            laskuri += 1
+    
+    return savel, oktaavi
