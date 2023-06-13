@@ -4,7 +4,7 @@ Tämä moduuli vastaa grafiikan piirrosta näytölle.
 
 import pygame
 
-def Piirra_Viivasto(naytto:pygame.Surface, x:int, keski_c_y:int, rivivali:int, diskantti:bool):
+def Piirra_Viivasto(naytto:pygame.Surface, x:float, keski_c_y:float, rivivali:float, leveys:float, diskantti:bool):
     """Piirtää viivaston näytölle
 
         Piirtää joko diskantti- tai bassoviivaston alkaen keski C:n koordinaateista
@@ -14,19 +14,21 @@ def Piirra_Viivasto(naytto:pygame.Surface, x:int, keski_c_y:int, rivivali:int, d
         naytto : pygame.Surface
             Näyttönä toimiva pygame.Surface objekti 
 
-        x : int
+        x : float
             Alkukoordinaatti näytön x-akselilla. Tästä kohtaa viivastoa aletaan piirtämään oikealle päin
         
-        keski_c_y : int
+        keski_c_y : float
             Keski C:n koordinaatti näytön y-akselilla. Diskanttiviivasto piirretään tämän yläpuolelle ja bassoviivasto alapuolelle.
 
-        rivivali : int
+        rivivali : float
             Montako pikseliä viivojen väliin jätetään.
+        
+        leveys : float
+            Viivaston leveys.
         
         diskantti : bool
             Piirretäänkö diskantti- vai bassoviivasto. True = diskantti, False = basso
 
-            
         Palauttaa
         ---------
         list
@@ -42,10 +44,91 @@ def Piirra_Viivasto(naytto:pygame.Surface, x:int, keski_c_y:int, rivivali:int, d
     y += rivivali # Muutetaan y-arvoa yhden rivin verran koska keski_c on ensimmäinen "ei näkyvä" viiva
 
     for i in range(5):
-        pygame.draw.line(naytto, (200,200,200), ( x, y + i * rivivali ), ( naytto.get_width(), y + i * rivivali ))
+        pygame.draw.line(naytto, (200,200,200), ( x - leveys / 2, y + i * rivivali ), ( x + leveys / 2, y + i * rivivali ))
         paikat.append(y + i * rivivali)
 
     return paikat
+
+def Piirra_Tahtiviiva(naytto:pygame.Surface, x:float, y:float, pituus:float):
+    """Piirtää tahtiviivan viivastolle
+
+        Tahtiviivalla jaetaan viivasto osiin
+    
+        Parametrit
+        ----------
+        naytto : pygame.Surface
+            Näyttönä toimiva pygame.Surface objekti 
+
+        x : float
+            Alkukoordinaatti näytön x-akselilla.
+        
+        y : float
+            Alkukoordinaatti näytön y-akselilla. Viiva piirretään niin, että y-koodinaatti on sen keskikohdassa
+        
+        pituus : float
+            Määrittää viivan pituuden y-akselilla
+
+        """
+    pygame.draw.line(naytto, (200,200,200), ( x, y - pituus / 2 ), ( x, y + pituus / 2))
+
+def Piirra_Paatosviiva(naytto:pygame.Surface, x:float, y:float, pituus:float):
+    """Piirtää päätösviivan viivastolle
+
+        Tämä on koko viivaston päättävä päätyviiva
+    
+        Parametrit
+        ----------
+        naytto : pygame.Surface
+            Näyttönä toimiva pygame.Surface objekti 
+
+        x : float
+            Alkukoordinaatti näytön x-akselilla.
+        
+        y : float
+            Alkukoordinaatti näytön y-akselilla. Viiva piirretään niin, että y-koodinaatti on sen keskikohdassa
+        
+        pituus : float
+            Määrittää viivan pituuden y-akselilla
+            
+        """
+    pygame.draw.line(naytto, (200,200,200), ( x, y - pituus / 2 ), ( x, y + pituus / 2 ), 4)
+    pygame.draw.line(naytto, (200,200,200), ( x - 6, y - pituus / 2 ), ( x - 6, y + pituus / 2 ))
+    
+def Piirra_Akkoladi(naytto:pygame.Surface, x:float, y:float, pituus:float): # pianoviivaston diskantti- ja bassorivin yhdistäjä
+    """Piirtää Akkoladin viivastolle
+
+        Akkoladi on pianoviivastolla käytettävä diskantti- ja bassorivin yhdistäjä.
+        Se piirretään heti viivaston alkuun
+    
+        Parametrit
+        ----------
+        naytto : pygame.Surface
+            Näyttönä toimiva pygame.Surface objekti 
+
+        x : float
+            Alkukoordinaatti näytön x-akselilla.
+        
+        y : float
+            Alkukoordinaatti näytön y-akselilla. Viiva piirretään niin, että y-koodinaatti on sen keskikohdassa
+        
+        pituus : float
+            Määrittää viivan pituuden y-akselilla
+            
+        """
+    Piirra_Tahtiviiva(naytto, x, y, pituus)
+    x -= 20
+    pygame.draw.lines(naytto,(200,200,200), False, [
+        (x + 16, y - pituus / 2), 
+        (x + 8, y - 120), 
+        (x + 5, y - 100), 
+        (x + 10, y - 50), 
+        (x + 8, y - 20), 
+        (x, y),  # keskikohta
+        (x + 8, y + 20), 
+        (x + 10, y + 50), 
+        (x + 5, y + 100), 
+        (x + 8, y + 120), 
+        (x + 16, y + pituus / 2)], 4)
 
 def Piirra_F_Avain(naytto:pygame.Surface, x:int, y:int, mittakaava:float = 1):
     """Piirtää F-avaimen näytölle

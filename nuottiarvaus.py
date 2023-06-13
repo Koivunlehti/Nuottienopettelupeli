@@ -1,5 +1,6 @@
 import pygame
 import pygame.midi
+from pygame.locals import *
 import random
 import piirto, koskettimet, apufunktiot
 
@@ -13,7 +14,7 @@ soitin.set_instrument(127,5)
 
 # Näytön alustus
 pygame.display.set_caption("Nuottiarvaus")
-naytto = pygame.display.set_mode((800, 650))
+naytto = pygame.display.set_mode((1000, 800), RESIZABLE)
 
 # Tekstit ja fontit
 fontti = pygame.font.SysFont("Georgia", 48, bold=True)
@@ -21,7 +22,7 @@ fontti_2 = pygame.font.SysFont("Georgia", 18, bold=True)
 pisteet_teksti = fontti.render("Pisteet: 0", True, "white")
 edellinen_oikea_vastaus = fontti.render("", True, "white")
 nykyinen_vastaus_teksti = ""
-taso_teksti = fontti.render("Taso: 1 (0/10)", True, "white")
+taso_teksti = fontti.render("Taso: 1 (0 / 10)", True, "white")
 virheet_teksti = fontti.render("Virheet: 0 / 5", True, "white")
 
 # Kello
@@ -29,10 +30,11 @@ kello = pygame.time.Clock()
 oikea_vastaus_ajastin = 0
 
 # Viivasto
-diskantti_keski_c_y = 200
-basso_keski_c_y =  260
+diskantti_keski_c_y = naytto.get_height() / 2 - 30
+basso_keski_c_y = naytto.get_height() / 2 + 30
 viivasto_rivivali = 20
-viivasto_paikat = {"diskantti": piirto.Piirra_Viivasto(naytto, 0, diskantti_keski_c_y + taso_teksti.get_height(), viivasto_rivivali, True), "basso": piirto.Piirra_Viivasto(naytto, 0, basso_keski_c_y + taso_teksti.get_height(), viivasto_rivivali, False)}
+viivaston_leveys = 700
+viivasto_paikat = {"diskantti": piirto.Piirra_Viivasto(naytto, naytto.get_width() / 2, diskantti_keski_c_y, viivasto_rivivali, viivaston_leveys, True), "basso": piirto.Piirra_Viivasto(naytto, naytto.get_width() / 2, basso_keski_c_y, viivasto_rivivali, viivaston_leveys, False)}
 
 # Koskettimet
 alku_midi = 36
@@ -55,22 +57,23 @@ midi_basso_ylaraja = 65
 diskantti = True
 
 # Rajaviivan sijainti
-rajaviiva_x = 150
-rajaviiva_y = 0
-rajaviiva_pituus_y = 450
+rajaviiva_x = naytto.get_width() / 2 - viivaston_leveys / 2 + 150
+rajaviiva_y = naytto.get_height() / 2
+rajaviiva_pituus_y = 400
 rajaviiva_paksuus = 4
 
 # Arvausalue
 arvausalue_x = rajaviiva_x + rajaviiva_paksuus
 arvausalue_y = rajaviiva_y
 arvausalue_leveys = 350
-arvausalue_korkeus = rajaviiva_pituus_y - rajaviiva_y - taso_teksti.get_height()
+arvausalue_korkeus = rajaviiva_pituus_y
 
 # Pisteet
 pisteet = 0
 taso = 1
 virhe_maara = 0
 oikein_maara = 0
+
 # Sävellaji
 savellaji = "C"
 savellajin_vaatima_tila_x = piirto.Piirra_Savellaji(naytto, 150, savellaji, paikat_diskantti, True, True)
@@ -83,8 +86,39 @@ while True:
         if tapahtuma.type == pygame.QUIT:   # Ikkunan yläkulman X painike
             exit()
 
-        if tapahtuma.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0] == True:    # Hiiren vasen painike alhaalla
+        if tapahtuma.type == pygame.VIDEORESIZE:    # Ikkunan koon muutos
             
+            # Ruudun minimikoko
+            if pygame.display.get_window_size()[0] < 750:
+               naytto = pygame.display.set_mode((750, pygame.display.get_window_size()[1]), RESIZABLE)
+            if pygame.display.get_window_size()[1] < 700:
+               naytto = pygame.display.set_mode((pygame.display.get_window_size()[0], 700), RESIZABLE)
+            # Nuotin ero rajaviivaan x-akselilla ennen ikkunan koon muutosta
+            nuotti_x_ero = nuotti_x - rajaviiva_x   
+
+            # Tärkeiden elementtien x- ja y-koordinaattien päivitys
+            diskantti_keski_c_y = naytto.get_height() / 2 - 30
+            basso_keski_c_y = naytto.get_height() / 2 + 30
+            viivasto_paikat = {"diskantti": piirto.Piirra_Viivasto(naytto, naytto.get_width() / 2, diskantti_keski_c_y, viivasto_rivivali, viivaston_leveys, True), "basso": piirto.Piirra_Viivasto(naytto, naytto.get_width() / 2, basso_keski_c_y, viivasto_rivivali, viivaston_leveys, False)}
+            paikat_diskantti = apufunktiot.Luo_Nuottien_Paikat(viivasto_paikat["diskantti"][0] + viivasto_rivivali, 10)
+            paikat_basso = apufunktiot.Luo_Nuottien_Paikat(viivasto_paikat["basso"][0] - viivasto_rivivali, 10)
+            rajaviiva_x = naytto.get_width() / 2 - viivaston_leveys / 2 + 150
+            rajaviiva_y = naytto.get_height() / 2
+            arvausalue_x = rajaviiva_x + rajaviiva_paksuus
+            arvausalue_y = rajaviiva_y
+
+            # Nuotin uudet koordinaatit 
+            nuotti_x = rajaviiva_x + nuotti_x_ero
+            if diskantti:
+                nuotti_y = paikat_diskantti[nuotti_midi][0]
+            else:
+                nuotti_y = paikat_basso[nuotti_midi][0]
+            
+            # Koskettimien uudet koordinaatit
+            koskettimet_valkoinen, koskettimet_musta = koskettimet.Luo_Koskettimet(naytto, alku_midi, loppu_midi, kosk_korkeus)
+
+        if tapahtuma.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0] == True:    # Hiiren vasen painike alhaalla
+
             musta_klikattu = False
             for kosketin in koskettimet_musta:
                 if kosketin[0].collidepoint(tapahtuma.pos):
@@ -110,8 +144,8 @@ while True:
             if musta_klikattu == False:
                 for kosketin in koskettimet_valkoinen:
                     if kosketin[0].collidepoint(tapahtuma.pos):
-                        soitin.note_off(kosketin[1], 127,1)
-                        soitin.note_on(kosketin[1], 127,1)
+                        soitin.note_off(kosketin[1], 127, 1)
+                        soitin.note_on(kosketin[1], 127, 1)
 
                         # Painetun koskettimen vertaaminen haettavaan nuottiin
                         if kosketin[1] == nuotti_midi:
@@ -314,7 +348,7 @@ while True:
                         savel_tekstina = apufunktiot.Savel_Tekstina(nuotti_midi,"a")
         
         # nuotin luontietäisyyys x-akselilla
-        nuotti_x = 150 + savellajin_vaatima_tila_x + arvausalue_leveys + 100
+        nuotti_x = arvausalue_x + arvausalue_leveys + savellajin_vaatima_tila_x + 100
         luo_nuotti = False
 
         # oikea vastaussävel tekstimuodossa talteen
@@ -347,9 +381,9 @@ while True:
             pygame.draw.rect(naytto,(140,140,140),kosketin[0])
         else:
             pygame.draw.rect(naytto,(240,240,240),kosketin[0])
-        if kosketin[1] == 60:
+        if kosketin[1] == 60:   # Piirretään keski-C kirjain
             teksti = fontti_2.render("C", True, "black")
-            naytto.blit(teksti, (kosketin[0].x, kosketin[0].y + 80))
+            naytto.blit(teksti, (kosketin[0].x + kosketin[0].width / 2 - teksti.get_width() / 2, kosketin[0].y + kosketin[0].height / 2 + 20))
 
     for kosketin in koskettimet_musta:  # Piirretään mustat koskettimet. Jos hiiri havaitaan koskettimen päällä, koskettimen väritystä muutetaan
         if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosketin[0].width and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosketin[0].height:
@@ -360,24 +394,24 @@ while True:
     savellajin_vaatima_tila_x = piirto.Piirra_Savellaji(naytto, 150, savellaji, paikat_diskantti, True, True)
 
     # Rajaviivan piirto
-    pygame.draw.line(naytto, (222,40,20), (rajaviiva_x + savellajin_vaatima_tila_x, rajaviiva_y + taso_teksti.get_height()), (rajaviiva_x + savellajin_vaatima_tila_x ,rajaviiva_pituus_y), rajaviiva_paksuus)
+    pygame.draw.line(naytto, (222,40,20), (rajaviiva_x + savellajin_vaatima_tila_x, rajaviiva_y - rajaviiva_pituus_y / 2), (rajaviiva_x + savellajin_vaatima_tila_x ,rajaviiva_y + rajaviiva_pituus_y / 2), rajaviiva_paksuus)
     
     # Arvausalue piirto
-    pygame.draw.rect(naytto, (6,148,3), [arvausalue_x + savellajin_vaatima_tila_x, arvausalue_y + taso_teksti.get_height(), arvausalue_leveys, arvausalue_korkeus])
+    pygame.draw.rect(naytto, (6,148,3), [arvausalue_x + savellajin_vaatima_tila_x, arvausalue_y - arvausalue_korkeus / 2, arvausalue_leveys, arvausalue_korkeus])
     
     # Viivaston piirto
-    piirto.Piirra_Viivasto(naytto, 0, diskantti_keski_c_y + taso_teksti.get_height(), viivasto_rivivali, True)
-    piirto.Piirra_Viivasto(naytto, 0, basso_keski_c_y + taso_teksti.get_height(), viivasto_rivivali, False)
+    piirto.Piirra_Viivasto(naytto, naytto.get_width() / 2, diskantti_keski_c_y, viivasto_rivivali, viivaston_leveys + savellajin_vaatima_tila_x, True)
+    piirto.Piirra_Viivasto(naytto, naytto.get_width() / 2, basso_keski_c_y, viivasto_rivivali, viivaston_leveys + savellajin_vaatima_tila_x, False)
 
     # G-Nuottiavain piirto
-    piirto.Piirra_G_Avain(naytto, 50, viivasto_paikat["diskantti"][1])
+    piirto.Piirra_G_Avain(naytto, naytto.get_width() / 2 - (viivaston_leveys + savellajin_vaatima_tila_x) / 2 + 50, viivasto_paikat["diskantti"][1])
 
     # F-Nuottiavain piirto
-    piirto.Piirra_F_Avain(naytto, 50, viivasto_paikat["basso"][1])
+    piirto.Piirra_F_Avain(naytto, naytto.get_width() / 2 - (viivaston_leveys + savellajin_vaatima_tila_x) / 2 + 50, viivasto_paikat["basso"][1])
 
     # Sävellajin merkkien piirto
-    piirto.Piirra_Savellaji(naytto,150, savellaji, paikat_diskantti, True)
-    piirto.Piirra_Savellaji(naytto,150, savellaji, paikat_basso, False)
+    piirto.Piirra_Savellaji(naytto, naytto.get_width() / 2 - (viivaston_leveys + savellajin_vaatima_tila_x) / 2 + 150, savellaji, paikat_diskantti, True)
+    piirto.Piirra_Savellaji(naytto, naytto.get_width() / 2 - (viivaston_leveys + savellajin_vaatima_tila_x) / 2 + 150, savellaji, paikat_basso, False)
 
     # Mahdollisten apuviivojen piirto
     if diskantti:
@@ -439,6 +473,9 @@ while True:
     virheet_teksti = fontti.render(f"Virheet: {virhe_maara} / 5", True, "white")
     naytto.blit(virheet_teksti, (naytto.get_width() - virheet_teksti.get_width(), 0))
 
+    #piirto.Piirra_Tahtiviiva(naytto, naytto.get_width() / 2 - (viivaston_leveys + savellajin_vaatima_tila_x) / 2, naytto.get_height() / 2, 10 * viivasto_rivivali + 60)
+    piirto.Piirra_Akkoladi(naytto, naytto.get_width() / 2 - (viivaston_leveys + savellajin_vaatima_tila_x) / 2, naytto.get_height() / 2, 10 * viivasto_rivivali + 60)
+    piirto.Piirra_Paatosviiva(naytto, naytto.get_width() / 2 + (viivaston_leveys + savellajin_vaatima_tila_x) / 2, naytto.get_height() / 2, 10 * viivasto_rivivali + 60)
 
     pygame.display.flip()
 
@@ -446,3 +483,5 @@ while True:
     kello.tick(60)
     if oikea_vastaus_ajastin > 0:
         oikea_vastaus_ajastin -= 1
+
+    
