@@ -1,6 +1,7 @@
 import pygame
 import pygame.midi
 from pygame.locals import *
+from nuottiarvaus import Nuottiarvaus
 
 pygame.init()
 
@@ -50,7 +51,9 @@ while True:
 
         if tapahtuma.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0] == True:    # Hiiren vasen painike alhaalla
             if painike.collidepoint(tapahtuma.pos):
-                exec(open("nuottiarvaus.py").read())
+                peli = Nuottiarvaus(pygame.display.get_window_size())
+                peli.Aloita()
+                
 
     naytto.blit(teksti_otsikko, (naytto.get_width() / 2 - teksti_otsikko.get_width() / 2, 100))
     naytto.blit(teksti_ohje, (naytto.get_width() / 2 - teksti_ohje.get_width() / 2, 200))
