@@ -4,6 +4,8 @@ from pygame.locals import *
 from nuottiarvaus import Nuottiarvaus
 
 pygame.init()
+pygame.midi.init()
+soitin = pygame.midi.Output(0)
 
 # Näyttö
 pygame.display.set_caption("Alkuvalikko")
@@ -51,7 +53,7 @@ while True:
 
         if tapahtuma.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0] == True:    # Hiiren vasen painike alhaalla
             if painike.collidepoint(tapahtuma.pos):
-                peli = Nuottiarvaus(pygame.display.get_window_size())
+                peli = Nuottiarvaus(soitin, pygame.display.get_window_size())
                 peli.Aloita()
                 
 

@@ -5,12 +5,11 @@ import random
 import piirto, koskettimet, apufunktiot
 
 class Nuottiarvaus():
-    def __init__(self, resoluutio:tuple = (1000, 800)):
+    def __init__(self, midi_soitin:pygame.midi.Output, resoluutio:tuple = (1000, 800)):
         pygame.init()
 
         # Midi soittimen alustus
-        pygame.midi.init()
-        self.soitin = pygame.midi.Output(0)
+        self.soitin = midi_soitin
         self.soitin.set_instrument(0,1)
         self.soitin.set_instrument(127,5)
 
@@ -94,7 +93,8 @@ class Nuottiarvaus():
             
             for tapahtuma in pygame.event.get():
                 if tapahtuma.type == pygame.QUIT:   # Ikkunan yläkulman X painike
-                    exit()
+
+                    return # suljetaan pelisilmukka return-lauseella, jonka jälkeen alkuvalikon suoritus jatkuu
 
                 if tapahtuma.type == pygame.VIDEORESIZE:    # Ikkunan koon muutos
                     
@@ -264,13 +264,8 @@ class Nuottiarvaus():
                 self.naytto.blit(self.edellinen_oikea_vastaus, (self.naytto.get_width() - self.edellinen_oikea_vastaus.get_width(), self.naytto.get_height() - self.kosk_korkeus - self.pisteet_teksti.get_height()))
             
             # Virhelaskurin ja oikein laskurin hallintaa
-            if self.virhe_maara >= 5:
-                self.luo_nuotti = True
-                self.virhe_maara = 0
-                self.oikein_maara = 0
-                self.taso -= 1
-                if self.taso <= 0:
-                    self.taso = 1
+            self.__Virhelaskuri()
+            
             if self.oikein_maara < 0:
                 self.oikein_maara = 0
 
@@ -293,6 +288,14 @@ class Nuottiarvaus():
             if self.oikea_vastaus_ajastin > 0:
                 self.oikea_vastaus_ajastin -= 1
     
+    def __Virhelaskuri(self):
+        if self.virhe_maara >= 5:
+            self.luo_nuotti = True
+            self.virhe_maara = 0
+            self.oikein_maara = 0
+            self.taso -= 1
+            if self.taso <= 0:
+                self.taso = 1
 
     def __Luo_Nuotti(self):
         self.piirra_ylennetty = False
@@ -313,6 +316,7 @@ class Nuottiarvaus():
         taso_savellajit = [("Cb","ab"), ("Db","eb"), ("Db","b"), ("Ab","f"), ("Eb","c"), ("B","g"), ("F","d"), 
                         ("C","a"), 
                         ("G","e"), ("D","h"), ("A","f#"), ("E","c#"), ("H","g#"), ("F#","d#"), ("C#","a#")]
+        
         if self.oikein_maara >= 10:
             self.taso += 1
             self.virhe_maara = 0
@@ -393,8 +397,6 @@ class Nuottiarvaus():
         else:
             self.__Arvo_Nuotti(taso_basso_alaraja, taso_basso_ylaraja, self.paikat_basso)
             self.diskantti = False
-        
-        self.savel_tekstina = apufunktiot.Savel_Tekstina(self.nuotti_midi)
 
         # Lisätään sävellajin vaikutus nuotteihin. Tarkistetaan myös että sävel ei mene asetettujen midi arvo rajojen yli
         savellaji_vaikutus = apufunktiot.Tarkista_Savellaji_Vaikutus(self.savellaji, self.nuotti_midi)
@@ -432,11 +434,12 @@ class Nuottiarvaus():
         self.nykyinen_vastaus_teksti = self.savel_tekstina[0] + " " + str(self.savel_tekstina[1])
 
     def __Arvo_Nuotti(self, midi_alaraja, midi_ylaraja, paikat):
-        self.nuotti_midi = random.randrange(midi_alaraja, midi_ylaraja)
+        self.nuotti_midi = random.randint(midi_alaraja, midi_ylaraja)
         kosketin_vari = paikat[self.nuotti_midi][1]
         if kosketin_vari == "m":
             self.nuotti_midi -= 1
         self.nuotti_y = paikat[self.nuotti_midi][0]
+        self.savel_tekstina = apufunktiot.Savel_Tekstina(self.nuotti_midi)
 
     def __Savellajin_Vaikutus_Ylennys(self, midi_diskantti_ylaraja, midi_basso_ylaraja):
         if self.diskantti and self.nuotti_midi + 1 <= midi_diskantti_ylaraja:

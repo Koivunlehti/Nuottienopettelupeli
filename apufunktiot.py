@@ -20,7 +20,8 @@ def Luo_Nuottien_Paikat(keski_c_y:float, vali:float):
 
     """
     paikat = {}
-    y = keski_c_y + 35 * vali   # lasketaan y-koordinaatin aloitusarvo perustuen annettuun keski_c y-koordinaattiin
+    valkeat_keski_c_alla = 35
+    y = keski_c_y + valkeat_keski_c_alla * vali   # Lasketaan y-koordinaatin aloitusarvo perustuen annettuun keski_c y-koordinaattiin.
     
     laskuri = 0 # Tätä laskuria käytetään reagoimaan 2 mustan ja 3 mustan koskettimen vaihtoon
     for i in range(128):
@@ -49,7 +50,7 @@ def Luo_Nuottien_Paikat(keski_c_y:float, vali:float):
     return paikat
 
 def Tarkista_Savellaji_Vaikutus(savellaji, midi_savel):
-    """Tarkistaa miten sävellaji vaikuttaa annettuun säveleen.
+    """ Tarkistaa miten sävellaji vaikuttaa annettuun säveleen.
 
     Parametrit
     ----------
