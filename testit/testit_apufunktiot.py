@@ -131,6 +131,7 @@ class Test_Apufunktioiden_Toiminta(unittest.TestCase):
                     testaa_savelet(self, molli, savelet, True)
     
     def test_savel_tekstina(self):
+        """Testaa, että kaikki midisävelet saavat oikean kirjallisen sävelen nimen sekä oktaaviarvon"""
         
         nimet = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","H"]
         nimet_ylen = ["H#","C#","D","D#","E","E#","F#","G","G#","A","A#","H"]

@@ -215,3 +215,112 @@ class Test_Nuottien_Toiminta(unittest.TestCase):
         self.nuottiarvaus.virhe_maara = 5
         self.nuottiarvaus._Nuottiarvaus__Virhelaskuri()
         self.assertEqual(self.nuottiarvaus.taso, 1, "Pelitason ei pitäisi laskea alle yhden")
+
+    def pelitasojen_testaaja(self, taso:int, savellajit:list, diskantti_sallitut_arvot:list, diskantti_midialue:tuple, basso_midialue:tuple,
+                             ylennyksen_sallitut_arvot:list, alennuksen_sallitut_arvot:list, palautuksen_sallitut_arvot:list, palautus_vain_rajoilla:bool):
+        """Apufunktio eri pelitasojen testaamiseen"""
+        self.nuottiarvaus.taso = taso
+        normaali_laskuri = 0
+        ylennys_laskuri = 0
+        alennus_laskuri = 0
+        palautus_laskuri = 0
+        for i in range(100):
+            self.nuottiarvaus._Nuottiarvaus__Luo_Nuotti()
+
+            # Sävellajit
+            self.assertIn(self.nuottiarvaus.savellaji, savellajit, f"Tasolla {taso} sävellajin pitäisi olla jokin seuraavista {savellajit}")
+
+            # Ylennykset, Alennukset, Palautukset
+            self.assertIn(self.nuottiarvaus.piirra_ylennetty, ylennyksen_sallitut_arvot, f"Tasolla {taso} ei pitäisi olla nuottien ylennyksiä")
+            self.assertIn(self.nuottiarvaus.piirra_alennettu, alennuksen_sallitut_arvot, f"Tasolla {taso} ei pitäisi olla nuottien alennuksia")
+            self.assertIn(self.nuottiarvaus.piirra_palautus, palautuksen_sallitut_arvot, f"Tasolla {taso} ei pitäisi olla nuottien palautuksia")
+            if self.nuottiarvaus.piirra_ylennetty:
+                ylennys_laskuri += 1
+            elif self.nuottiarvaus.piirra_alennettu:
+                alennus_laskuri += 1
+            elif self.nuottiarvaus.piirra_palautus:
+                if palautus_vain_rajoilla:
+                     self.assertIn(self.nuottiarvaus.nuotti_midi,
+                                   [diskantti_midialue[0],
+                                    diskantti_midialue[1],
+                                    basso_midialue[0], 
+                                    basso_midialue[1]], 
+                                    f"Tasolla {taso} nuotin palautuksen saa tehdään vain midiarvojen rajoilla")
+                palautus_laskuri += 1
+            else:
+                normaali_laskuri += 1
+
+            # Midi rajat
+            self.assertIn(self.nuottiarvaus.diskantti, diskantti_sallitut_arvot, f"Tasolla {taso} diskantin pitäisi olla arvossa {diskantti_sallitut_arvot}")
+            if self.nuottiarvaus.diskantti == True:
+                self.assertGreaterEqual(self.nuottiarvaus.nuotti_midi, diskantti_midialue[0], f"Tasolla {taso} diskantin midiarvon pitäisi olla minimissään {diskantti_midialue[0]}")
+                self.assertLessEqual(self.nuottiarvaus.nuotti_midi, diskantti_midialue[1], f"Tasolla {taso} diskantin midiarvon pitäisi olla maksimissaan {diskantti_midialue[1]}")
+            else:
+                self.assertGreaterEqual(self.nuottiarvaus.nuotti_midi, basso_midialue[0], f"Tasolla {taso} basson midiarvon pitäisi olla minimissään {basso_midialue[0]}")
+                self.assertLessEqual(self.nuottiarvaus.nuotti_midi, basso_midialue[1], f"Tasolla {taso} basson midiarvon pitäisi olla maksimissaan {basso_midialue[1]}")
+
+        if True in ylennyksen_sallitut_arvot:
+            self.assertNotEqual(ylennys_laskuri, 0, "Yhtään ylennettyä nuottia ei arvottu, vaikka niitä pitäisi esiintyä")
+        if True in alennuksen_sallitut_arvot:
+            self.assertNotEqual(alennus_laskuri, 0, "Yhtään alennettua nuottia ei arvottu, vaikka niitä pitäisi esiintyä")
+        if True in palautuksen_sallitut_arvot and palautus_vain_rajoilla == False:
+            self.assertNotEqual(palautus_laskuri, 0,"Yhtään palautettua nuottia ei arvottu, vaikka niitä pitäisi esiintyä")
+        
+        self.assertNotEqual(normaali_laskuri, 0, "Yhtään normaalia nuottia ei arvottu, vaikka niitä pitäisi esiintyä")
+        
+    def test_taso_1(self):
+        self.pelitasojen_testaaja(1, ["C"], [True], (60,72), (), [False], [False], [False], False)
+
+    def test_taso_2(self):
+        self.pelitasojen_testaaja(2, ["C"], [True], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), (), [False], [False], [False], False)
+    
+    def test_taso_3(self):
+        self.pelitasojen_testaaja(3, ["C"], [False], (), (48, 60), [False], [False], [False], False)
+
+    def test_taso_4(self):
+        self.pelitasojen_testaaja(4, ["C"], [False], (), (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [False], False)
+
+    def test_taso_5(self):
+        self.pelitasojen_testaaja(5, ["C"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [True, False], [False], [False], False)
+    
+    def test_taso_6(self):
+        self.pelitasojen_testaaja(6, ["C"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [True, False], [False], False)
+
+    def test_taso_7(self):
+        self.pelitasojen_testaaja(7, ["C"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [True, False], [True, False], [False], False)
+
+    def test_taso_8(self):
+        self.pelitasojen_testaaja(8, ["F", "d", "G", "e"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [True, False], True)
+
+    def test_taso_9(self):
+        self.pelitasojen_testaaja(9, ["B", "g", "D", "h"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [True, False], True)
+    
+    def test_taso_10(self):
+        self.pelitasojen_testaaja(10, ["Eb", "c", "A", "f#"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [True, False], True)
+    
+    def test_taso_11(self):
+        self.pelitasojen_testaaja(11, ["Ab", "f", "E", "c#"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [True, False], True)
+    
+    def test_taso_12(self):
+        self.pelitasojen_testaaja(12, ["Db", "b", "H", "g#"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [True, False], True)
+    
+    def test_taso_13(self):
+        self.pelitasojen_testaaja(13, ["Gb", "eb", "F#", "d#"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [True, False], True)
+    
+    def test_taso_14(self):
+        self.pelitasojen_testaaja(14, ["Cb", "ab", "C#", "a#"], [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [False], [False], [True, False], True)
+
+    def test_taso_15(self):
+        self.pelitasojen_testaaja(15, ["Cb","ab", "Gb","eb", "Db","b", "Ab","f", "Eb","c", "B","g", "F","d", "C","a", "G","e", "D","h", "A","f#", "E","c#", "H","g#", "F#","d#", "C#","a#"], 
+                                  [True, False], (self.nuottiarvaus.midi_diskantti_alaraja, self.nuottiarvaus.loppu_midi), 
+                                  (self.nuottiarvaus.alku_midi, self.nuottiarvaus.midi_basso_ylaraja), [True, False], [True, False], [True, False], False)

@@ -313,7 +313,7 @@ class Nuottiarvaus():
         taso_diskantti_ylaraja = self.loppu_midi
         taso_basso_alaraja = self.alku_midi
         taso_basso_ylaraja = self.midi_basso_ylaraja
-        taso_savellajit = [("Cb","ab"), ("Db","eb"), ("Db","b"), ("Ab","f"), ("Eb","c"), ("B","g"), ("F","d"), 
+        taso_savellajit = [("Cb","ab"), ("Gb","eb"), ("Db","b"), ("Ab","f"), ("Eb","c"), ("B","g"), ("F","d"), 
                         ("C","a"), 
                         ("G","e"), ("D","h"), ("A","f#"), ("E","c#"), ("H","g#"), ("F#","d#"), ("C#","a#")]
         
