@@ -1,5 +1,7 @@
 import pygame
 import pygame.midi
+import random
+import apufunktiot
 from pygame.locals import *
 
 class Kuule_Savel():
@@ -11,8 +13,10 @@ class Kuule_Savel():
         # Midi
         self.soitin = midi_soitin
         self.soitin.set_instrument(0,1)
-        self.midi = 0
+        self.midi_alue = (60,71)
+        self.midi = self.midi_alue[0]
 
+        # Painikkeet
         self.vastauspainikkeet = []
         self.vastauspainikkeet_hiiri_paalla = []
         self.vastauspainikkeet_vari_1 = (60,120,70)
@@ -22,8 +26,15 @@ class Kuule_Savel():
         self.uudelleen_painike_vari_2 = (60,170,70)
         self.uudelleen_painike_hiiri_paalla = False
 
+        # Sävelten soitto
+        self.soita_savelet = True
+        self.soiva_savel = ""
+        # Valmistaudu vaihe
+        self.valmistaudu = False
+        self.valmistaudu_laskuri = 3
+
         # Ajastimet
-        self.kello = pygame.time.Clock()       
+        self.kello = pygame.time.Clock()
         self.laskuri = 0
         
     
@@ -55,22 +66,35 @@ class Kuule_Savel():
             
             otsikko = self.__Luo_Teksti(teksti="Mikä sävel?", teksti_koko=42)
             self.naytto.blit(otsikko,(self.naytto.get_width() / 2 -  otsikko.get_width() / 2, 100))
-
-            uudelleen_painike = self.__Luo_Painike(taustavari=self.uudelleen_painike_vari_1, taustavari_hiiri_paalla=self.uudelleen_painike_vari_2, 
-                                                   hiiri_paalla=self.uudelleen_painike_hiiri_paalla, teksti="Toista uudelleen", reunus=30)
-            uudelleen_painike = self.naytto.blit(uudelleen_painike,(self.naytto.get_width() / 2 - uudelleen_painike.get_width() / 2, self.naytto.get_height() / 2 - uudelleen_painike.get_height() / 2))
+       
             
+            if self.valmistaudu == False and self.soita_savelet == False:
+                uudelleen_painike = self.__Luo_Painike(taustavari=self.uudelleen_painike_vari_1, taustavari_hiiri_paalla=self.uudelleen_painike_vari_2, 
+                                                   hiiri_paalla=self.uudelleen_painike_hiiri_paalla, teksti="Toista uudelleen", reunus=30)
+                uudelleen_painike = self.naytto.blit(uudelleen_painike,(self.naytto.get_width() / 2 - uudelleen_painike.get_width() / 2, self.naytto.get_height() / 2 - uudelleen_painike.get_height() / 2))
+            else:
+                if self.soita_savelet == True:
+                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Sävel: {self.soiva_savel}", teksti_koko=42)
+                    self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
+                else:    
+                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Valmistaudu ... {str(self.valmistaudu_laskuri)}", teksti_koko=42)
+                    self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
+
             # Tapahtumat
             for tapahtuma in pygame.event.get():
                 if tapahtuma.type == pygame.QUIT:   # Ikkunan yläkulman X painike
                     return
                 
                 if tapahtuma.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0] == True:    # Vasen hiiren painike alas
-                    for i in range(len(self.vastauspainikkeet)):
-                        if self.vastauspainikkeet[i][0].collidepoint(tapahtuma.pos):
-                            print(self.vastauspainikkeet[i][1])
-                    if uudelleen_painike.collidepoint(tapahtuma.pos):
-                        print("toista uudelleen")
+                    if self.valmistaudu == False and self.soita_savelet == False:
+                        for i in range(len(self.vastauspainikkeet)):
+                            if self.vastauspainikkeet[i][0].collidepoint(tapahtuma.pos):
+                                if apufunktiot.Savel_Tekstina(self.midi)[0] == self.vastauspainikkeet[i][1]:
+                                    self.valmistaudu = True
+
+                        if uudelleen_painike.collidepoint(tapahtuma.pos):
+                            self.soitin.note_off(self.midi,127,0)
+                            self.soitin.note_on(self.midi,127,0)
 
             # Tunnistetaan onko hiiri painikkeen päällä
             for i in range(len(self.vastauspainikkeet)):
@@ -79,30 +103,53 @@ class Kuule_Savel():
                 else:
                     self.vastauspainikkeet_hiiri_paalla[i] = False
 
-            if uudelleen_painike.collidepoint((hiiri_x, hiiri_y)):
-                self.uudelleen_painike_hiiri_paalla = True
-            else:
-                self.uudelleen_painike_hiiri_paalla = False
+            if self.valmistaudu == False and self.soita_savelet == False:
+                if uudelleen_painike.collidepoint((hiiri_x, hiiri_y)):
+                    self.uudelleen_painike_hiiri_paalla = True
+                else:
+                    self.uudelleen_painike_hiiri_paalla = False
 
-            # if self.laskuri == 60:
-            #     if self.midi -1 < 0:
-            #         self.soitin.note_off(127,127,0)
-            #     else: 
-            #         self.soitin.note_off(self.midi - 1)
-            #     self.soitin.note_on(self.midi,127,0)
-            #     self.laskuri = 0
-            #     self.midi += 1
-                
-                
-            #     if self.midi == 128:
-            #         self.midi = 0
-                
-            # else:
-            #     self.laskuri += 1
+            # Sävelten läpisoitto 
+            if self.soita_savelet:
+                if self.laskuri == 60:
+                    if self.midi > self.midi_alue[0]:
+                        self.soitin.note_off(self.midi - 1, 127, 0)
+
+                    if self.midi > self.midi_alue[1]:
+                        self.valmistaudu = True
+                        self.laskuri = 0
+                        self.midi = self.midi_alue[0]
+                        self.soita_savelet = False
+                    else:
+                        self.soitin.note_on(self.midi, 127, 0)
+                        self.laskuri = 0
+                        self.soiva_savel = apufunktiot.Savel_Tekstina(self.midi)[0]
+                        self.midi += 1
+                        
+                else:
+                    self.laskuri += 1
+            # Valmistautumisvaihe
+            elif self.valmistaudu:
+                if self.laskuri >= 180:
+                    self.valmistaudu = False
+                    self.laskuri = 0
+                    self.valmistaudu_laskuri = 3
+                    self.__Arvo_Midi()
+                    self.soitin.note_on(self.midi,127,0)
+                    print(self.midi)
+                else:
+                    self.laskuri += 1
+                    if self.laskuri % 60 == 0:
+                        self.valmistaudu_laskuri -= 1
+            else:
+                pass
 
             self.kello.tick(60)
             
             pygame.display.flip()  
+
+    def __Arvo_Midi(self):
+        self.midi = random.randint(self.midi_alue[0],self.midi_alue[1])
 
     def __Luo_Painike(self, taustavari:str|tuple = None, taustavari_hiiri_paalla:str|tuple = None, hiiri_paalla:bool = False, leveys_x:float|None = None,
                       fontti:str = "Georgia", teksti:str = "", teksti_koko:int = 32, lihavoitu:bool = False, kursivoitu = False, 
