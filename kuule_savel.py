@@ -68,7 +68,7 @@ class Kuule_Savel():
             otsikko = ui_komponentit.Luo_Teksti(teksti="Mikä sävel?", koko=42)
             self.naytto.blit(otsikko,(self.naytto.get_width() / 2 -  otsikko.get_width() / 2, 100))
             
-            # Luodaan keskialueen vaihtoehtoisia sisältöjä
+            # Luodaan keskialueen muuttuvia sisältöjä
             if self.valmistaudu == False and self.soita_savelet == False:
                 uudelleen_painike = ui_komponentit.Luo_Painike(taustavari=self.uudelleen_painike_vari_1, taustavari_hiiri_paalla=self.uudelleen_painike_vari_2, 
                                                    hiiri_paalla=self.uudelleen_painike_hiiri_paalla, teksti="Toista uudelleen", reunus=30)
@@ -81,6 +81,7 @@ class Kuule_Savel():
                     laskuri_teksti = ui_komponentit.Luo_Teksti(teksti=f"Valmistaudu ... {str(self.valmistaudu_laskuri)}", koko=42)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
 
+            # Oikein ja väärin tekstit
             if self.oikein_vaarin_ajastin > 0:
                     if self.oikein_vaarin_teksti == "Oikein":
                         teksti_vari = "Green"
@@ -97,6 +98,13 @@ class Kuule_Savel():
                 if tapahtuma.type == pygame.QUIT:   # Ikkunan yläkulman X painike
                     return
                 
+                if tapahtuma.type == pygame.VIDEORESIZE:    # Ikkunan koon muutos 
+                    # Ruudun minimikoko
+                    if pygame.display.get_window_size()[0] < 750:
+                        self.naytto = pygame.display.set_mode((750, pygame.display.get_window_size()[1]), RESIZABLE)
+                    if pygame.display.get_window_size()[1] < 700:
+                        self.naytto = pygame.display.set_mode((pygame.display.get_window_size()[0], 700), RESIZABLE)
+
                 if tapahtuma.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0] == True:    # Vasen hiiren painike alas
                     if self.valmistaudu == False and self.soita_savelet == False:
                         for i in range(len(self.vastauspainikkeet)):
@@ -182,29 +190,39 @@ class Kuule_Savel():
         self.midi = random.randint(self.midi_alue[0],self.midi_alue[1])
 
     def __Luo_Vastauspainikkeet(self):
+        # Muuttujien alustus
         self.vastauspainikkeet = []
         savelet = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"]
-        painike_leveys = 60
         painike_vali = 10
-        painike_x = self.naytto.get_width() / 2 - 6 * (painike_leveys + painike_vali)
+        painike_leveys = self.naytto.get_width() / len(savelet) - painike_vali
+        
+        painike_x = self.naytto.get_width() / 2 - (len(savelet) / 2) * (painike_leveys + painike_vali) + (painike_vali / 2)
+        
         for i in range(12):
             hiiri_paalla = False
-            if i >= len(self.vastauspainikkeet_hiiri_paalla):
+
+            # Jos vastauspainikkeiden "hiiri_päällä" lista on tyhjä, alustetaan se tässä False arvoilla.
+            if i >= len(self.vastauspainikkeet_hiiri_paalla):    
                 self.vastauspainikkeet_hiiri_paalla.append(False)
 
+            # Havaitaan, onko hiiri luotavan painikkeen päällä
             if self.vastauspainikkeet_hiiri_paalla[i] == True:
                 hiiri_paalla = True
 
+            # Vastauspainikkeiden värimuutoksia
             if savelet[i] in self.vastauspainikkeet_vaarin:
                 taustavari = self.vastauspainikkeet_vari_vaarin_1
                 taustavari_hiiri_paalla = self.vastauspainikkeet_vari_vaarin_2
             else:
                 taustavari = self.vastauspainikkeet_vari_1
                 taustavari_hiiri_paalla = self.vastauspainikkeet_vari_2
+
+            # Luodaan painike   
             painike = self.naytto.blit(ui_komponentit.Luo_Painike(taustavari=taustavari, taustavari_hiiri_paalla=taustavari_hiiri_paalla, 
                                                             hiiri_paalla=hiiri_paalla, teksti=savelet[i], reunus=30, leveys_x=painike_leveys), (painike_x, self.naytto.get_height() - 200))
             painike_x += painike.width + painike_vali
             self.vastauspainikkeet.append((painike, savelet[i]))
+
 
 if __name__ == "__main__":
     pygame.init()
