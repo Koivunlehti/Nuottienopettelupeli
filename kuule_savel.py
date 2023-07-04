@@ -21,10 +21,19 @@ class Kuule_Savel():
         self.vastauspainikkeet_hiiri_paalla = []
         self.vastauspainikkeet_vari_1 = (60,120,70)
         self.vastauspainikkeet_vari_2 = (60,170,70)
+        self.vastauspainikkeet_vari_vaarin_1 = (200,50,50)
+        self.vastauspainikkeet_vari_vaarin_2 = (150,50,50)
+        self.vastauspainikkeet_vaarin = []
 
         self.uudelleen_painike_vari_1 = (60,120,70)
         self.uudelleen_painike_vari_2 = (60,170,70)
         self.uudelleen_painike_hiiri_paalla = False
+
+        # Oikein ja väärin
+        self.oikein_vaarin_teksti = ""
+        self.oikein_vaarin_ajastin = 0
+        self.oikein_maara = 0
+        self.vaarin_maara = 0
 
         # Sävelten soitto
         self.soita_savelet = True
@@ -35,7 +44,7 @@ class Kuule_Savel():
 
         # Ajastimet
         self.kello = pygame.time.Clock()
-        self.laskuri = 0
+        self.ajastin = 0
         
     
     def Aloita(self):
@@ -59,7 +68,13 @@ class Kuule_Savel():
                 if self.vastauspainikkeet_hiiri_paalla[i] == True:
                     hiiri_paalla = True
 
-                painike = self.naytto.blit(self.__Luo_Painike(taustavari= self.vastauspainikkeet_vari_1, taustavari_hiiri_paalla=self.vastauspainikkeet_vari_2, 
+                if savelet[i] in self.vastauspainikkeet_vaarin:
+                    taustavari = self.vastauspainikkeet_vari_vaarin_1
+                    taustavari_hiiri_paalla = self.vastauspainikkeet_vari_vaarin_2
+                else:
+                    taustavari = self.vastauspainikkeet_vari_1
+                    taustavari_hiiri_paalla = self.vastauspainikkeet_vari_2
+                painike = self.naytto.blit(self.__Luo_Painike(taustavari=taustavari, taustavari_hiiri_paalla=taustavari_hiiri_paalla, 
                                                                 hiiri_paalla=hiiri_paalla, teksti=savelet[i], reunus=30, leveys_x=painike_leveys), (painike_x, self.naytto.get_height() - 200))
                 painike_x += painike.width + painike_vali
                 self.vastauspainikkeet.append((painike, savelet[i]))
@@ -74,11 +89,19 @@ class Kuule_Savel():
                 uudelleen_painike = self.naytto.blit(uudelleen_painike,(self.naytto.get_width() / 2 - uudelleen_painike.get_width() / 2, self.naytto.get_height() / 2 - uudelleen_painike.get_height() / 2))
             else:
                 if self.soita_savelet == True:
-                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Sävel: {self.soiva_savel}", teksti_koko=42)
+                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Kaikki sävelet: {self.soiva_savel}", teksti_koko=42)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
                 else:    
                     laskuri_teksti = self.__Luo_Teksti(teksti=f"Valmistaudu ... {str(self.valmistaudu_laskuri)}", teksti_koko=42)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
+
+            if self.oikein_vaarin_ajastin > 0:
+                    if self.oikein_vaarin_teksti == "Oikein":
+                        teksti_vari = "Green"
+                    else:
+                        teksti_vari = "Red"
+                    oikein_vaarin_teksti = self.__Luo_Teksti(teksti=self.oikein_vaarin_teksti, teksti_koko=42, teksti_vari=teksti_vari)
+                    self.naytto.blit(oikein_vaarin_teksti,(self.naytto.get_width() / 2 - oikein_vaarin_teksti.get_width() / 2, self.naytto.get_height() - 260))
 
             # Tapahtumat
             for tapahtuma in pygame.event.get():
@@ -91,6 +114,17 @@ class Kuule_Savel():
                             if self.vastauspainikkeet[i][0].collidepoint(tapahtuma.pos):
                                 if apufunktiot.Savel_Tekstina(self.midi)[0] == self.vastauspainikkeet[i][1]:
                                     self.valmistaudu = True
+                                    self.vastauspainikkeet_vaarin = []
+                                    self.oikein_vaarin_teksti = "Oikein"
+                                    self.oikein_vaarin_ajastin = 60
+                                    self.oikein_maara += 1
+                                else:
+                                    if self.vastauspainikkeet[i][1] not in self.vastauspainikkeet_vaarin:
+                                        self.vastauspainikkeet_vaarin.append(self.vastauspainikkeet[i][1])
+                                    self.oikein_vaarin_teksti = "Väärin"
+                                    self.oikein_vaarin_ajastin = 60
+                                    self.vaarin_maara += 1
+                                    
 
                         if uudelleen_painike.collidepoint(tapahtuma.pos):
                             self.soitin.note_off(self.midi,127,0)
@@ -111,38 +145,41 @@ class Kuule_Savel():
 
             # Sävelten läpisoitto 
             if self.soita_savelet:
-                if self.laskuri == 60:
+                if self.ajastin == 60:
                     if self.midi > self.midi_alue[0]:
                         self.soitin.note_off(self.midi - 1, 127, 0)
 
                     if self.midi > self.midi_alue[1]:
                         self.valmistaudu = True
-                        self.laskuri = 0
+                        self.ajastin = 0
                         self.midi = self.midi_alue[0]
                         self.soita_savelet = False
                     else:
                         self.soitin.note_on(self.midi, 127, 0)
-                        self.laskuri = 0
+                        self.ajastin = 0
                         self.soiva_savel = apufunktiot.Savel_Tekstina(self.midi)[0]
                         self.midi += 1
                         
                 else:
-                    self.laskuri += 1
+                    self.ajastin += 1
             # Valmistautumisvaihe
             elif self.valmistaudu:
-                if self.laskuri >= 180:
+                if self.ajastin >= 180:
                     self.valmistaudu = False
-                    self.laskuri = 0
+                    self.ajastin = 0
                     self.valmistaudu_laskuri = 3
                     self.__Arvo_Midi()
                     self.soitin.note_on(self.midi,127,0)
                     print(self.midi)
                 else:
-                    self.laskuri += 1
-                    if self.laskuri % 60 == 0:
+                    self.ajastin += 1
+                    if self.ajastin % 60 == 0:
                         self.valmistaudu_laskuri -= 1
             else:
                 pass
+            
+            if self.oikein_vaarin_ajastin > 0:
+                self.oikein_vaarin_ajastin -= 1
 
             self.kello.tick(60)
             
