@@ -31,13 +31,17 @@ class Kuule_Savel():
 
         # Oikein ja väärin
         self.oikein_vaarin_teksti = ""
-        self.oikein_vaarin_ajastin = 0
         self.oikein_maara = 0
         self.vaarin_maara = 0
+
+        # pisteet
+        self.pisteet = 0
+        self.arvausmaara = 3
 
         # Sävelten soitto
         self.soita_savelet = True
         self.soiva_savel = ""
+
         # Valmistaudu vaihe
         self.valmistaudu = False
         self.valmistaudu_laskuri = 3
@@ -45,6 +49,7 @@ class Kuule_Savel():
         # Ajastimet
         self.kello = pygame.time.Clock()
         self.ajastin = 0
+        self.oikein_vaarin_ajastin = 0
         
     
     def Aloita(self):
@@ -79,9 +84,8 @@ class Kuule_Savel():
                 painike_x += painike.width + painike_vali
                 self.vastauspainikkeet.append((painike, savelet[i]))
             
-            otsikko = self.__Luo_Teksti(teksti="Mikä sävel?", teksti_koko=42)
+            otsikko = self.__Luo_Teksti(teksti="Mikä sävel?", koko=42)
             self.naytto.blit(otsikko,(self.naytto.get_width() / 2 -  otsikko.get_width() / 2, 100))
-       
             
             if self.valmistaudu == False and self.soita_savelet == False:
                 uudelleen_painike = self.__Luo_Painike(taustavari=self.uudelleen_painike_vari_1, taustavari_hiiri_paalla=self.uudelleen_painike_vari_2, 
@@ -89,10 +93,10 @@ class Kuule_Savel():
                 uudelleen_painike = self.naytto.blit(uudelleen_painike,(self.naytto.get_width() / 2 - uudelleen_painike.get_width() / 2, self.naytto.get_height() / 2 - uudelleen_painike.get_height() / 2))
             else:
                 if self.soita_savelet == True:
-                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Kaikki sävelet: {self.soiva_savel}", teksti_koko=42)
+                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Sävelien läpikäynti: {self.soiva_savel}", koko=42)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
                 else:    
-                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Valmistaudu ... {str(self.valmistaudu_laskuri)}", teksti_koko=42)
+                    laskuri_teksti = self.__Luo_Teksti(teksti=f"Valmistaudu ... {str(self.valmistaudu_laskuri)}", koko=42)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
 
             if self.oikein_vaarin_ajastin > 0:
@@ -100,8 +104,11 @@ class Kuule_Savel():
                         teksti_vari = "Green"
                     else:
                         teksti_vari = "Red"
-                    oikein_vaarin_teksti = self.__Luo_Teksti(teksti=self.oikein_vaarin_teksti, teksti_koko=42, teksti_vari=teksti_vari)
+                    oikein_vaarin_teksti = self.__Luo_Teksti(teksti=self.oikein_vaarin_teksti, koko=42, vari=teksti_vari)
                     self.naytto.blit(oikein_vaarin_teksti,(self.naytto.get_width() / 2 - oikein_vaarin_teksti.get_width() / 2, self.naytto.get_height() - 260))
+
+            valikko = self.__Luo_ylavalikko_pelkistetty(self.naytto.get_width(), 1, (50,0), (60,120,70), f"Oikein: {self.oikein_maara}", f"Pisteet: {self.pisteet}", f"Väärin: {self.vaarin_maara}")
+            self.naytto.blit(valikko,(0, 0))
 
             # Tapahtumat
             for tapahtuma in pygame.event.get():
@@ -118,12 +125,17 @@ class Kuule_Savel():
                                     self.oikein_vaarin_teksti = "Oikein"
                                     self.oikein_vaarin_ajastin = 60
                                     self.oikein_maara += 1
+                                    self.pisteet += self.arvausmaara * 10
+                                    if self.pisteet < 0:
+                                        self.pisteet = 0
+                                    self.arvausmaara = 3
                                 else:
                                     if self.vastauspainikkeet[i][1] not in self.vastauspainikkeet_vaarin:
                                         self.vastauspainikkeet_vaarin.append(self.vastauspainikkeet[i][1])
                                     self.oikein_vaarin_teksti = "Väärin"
                                     self.oikein_vaarin_ajastin = 60
                                     self.vaarin_maara += 1
+                                    self.arvausmaara -= 1
                                     
 
                         if uudelleen_painike.collidepoint(tapahtuma.pos):
@@ -170,7 +182,6 @@ class Kuule_Savel():
                     self.valmistaudu_laskuri = 3
                     self.__Arvo_Midi()
                     self.soitin.note_on(self.midi,127,0)
-                    print(self.midi)
                 else:
                     self.ajastin += 1
                     if self.ajastin % 60 == 0:
@@ -254,7 +265,64 @@ class Kuule_Savel():
         painike.blit(painike_teksti,(painike.get_width() / 2 - painike_teksti.get_width() / 2, painike.get_height() / 2 - painike_teksti.get_height() / 2))
         return painike
 
-    def __Luo_Teksti(self, fontti:str = "Georgia", teksti:str = "", teksti_koko:int = 32, lihavoitu:bool = False, kursivoitu:bool = False, teksti_vari:str|tuple = "white") -> pygame.Surface:
+    def __Luo_ylavalikko_pelkistetty(self, leveys:float, korkeus:float = 0, reunus:tuple = (0, 0), taustavari:str | tuple = "black", 
+                                     teksti_vasen:str = "", teksti_keski:str = "", teksti_oikea:str = "", teksti_koko:int = 32, teksti_fontti:str = "Georgia", teksti_vari:str | tuple = "white"):
+        """ Luo yksinkertaisen, maksimissaan kolmella tekstialueella varustetun, yläreunan valikon.
+            
+            Tekstit noudattavat kaikki samaa kokoa, fonttia ja väritystä.
+
+        Parametrit
+        ----------
+        leveys : float  
+            Valikon leveys
+
+        korkeus: float, valinnainen
+            Valikon korkeus. Jos annettu arvo on pienempi kuin tekstin korkeus, käytetään arvona tekstin korkeutta.
+
+        reunus: tuple, valinnainen
+            Paljonko tyhjää tilaa valikon reunojen ja tekstien väliin jätetään. (vasen / oikea, ylä / ala)
+
+        taustavari: str| tuple, valinnainen
+            Valikon taustaväri. Voit käyttää str tai tuple arvoa.
+
+        teksti_vasen : str, valinnainen
+            Vasemman reunan teksti
+        
+        teksti_keski : str, valinnainen
+            Keskimmäinen teksti
+
+        teksti_oikea : str, valinnainen
+            Oikean reunan teksti
+        
+        teksti_koko: int, valinnainen
+            Tekstien fonttikoko
+        
+        teksti_fontti: str, valinnainen
+            Tekstien fontti
+
+        teksti_vari: str | tuple, valinnainen
+            Tekstin väri. Voit käyttää str tai tuple arvoa.
+
+        Palauttaa 
+        ----------
+        pygame.Surface
+            Palauttaa pygame.Surface olion
+
+
+        """
+        teksti_v = self.__Luo_Teksti(teksti=teksti_vasen, koko=teksti_koko, fontti = teksti_fontti, vari=teksti_vari)
+        teksti_k = self.__Luo_Teksti(teksti=teksti_keski, koko=teksti_koko, fontti = teksti_fontti, vari=teksti_vari)
+        teksti_o = self.__Luo_Teksti(teksti=teksti_oikea, koko=teksti_koko, fontti = teksti_fontti, vari=teksti_vari)
+        if korkeus < teksti_v.get_height():
+            korkeus = teksti_v.get_height() + reunus[1] * 2
+        valikko = pygame.Surface((leveys, korkeus), pygame.SRCALPHA)
+        valikko.fill(taustavari)
+        valikko.blit(teksti_v, (0 + reunus[0], 0 + reunus[1]))
+        valikko.blit(teksti_k, (valikko.get_width() / 2 - teksti_k.get_width() / 2, 0 + reunus[1]))
+        valikko.blit(teksti_o, (valikko.get_width() - teksti_o.get_width() - reunus[0], 0 + reunus[1]))
+        return valikko
+
+    def __Luo_Teksti(self, fontti:str = "Georgia", teksti:str = "", koko:int = 32, lihavoitu:bool = False, kursivoitu:bool = False, vari:str|tuple = "white") -> pygame.Surface:
         """ Luo tekstinä toimivan pygame.Surface olion ja palauttaa sen
     
         Parametrit
@@ -263,10 +331,10 @@ class Kuule_Savel():
             Käytettävän fontin nimi
         
         teksti : str, valinnainen
-            Painikkeen teksti
+            Tekstinä käytettävä merkkijono
 
-        teksti_koko : int, valinnainen
-            Painikkeen tekstin koko
+        koko : int, valinnainen
+            Tekstin koko
         
         lihavoitu: bool, valinnainen
             Tekstin lihavointi
@@ -274,16 +342,16 @@ class Kuule_Savel():
         kursivointi: bool, valinnainen
             Tekstin kursivointi
 
-        teksti_vari: str | tuple, valinnainen
-            Tekstin väri Voit käyttää str tai tuple arvoa.
+        vari: str | tuple, valinnainen
+            Tekstin väri. Voit käyttää str tai tuple arvoa.
 
         Palauttaa 
         ----------
         pygame.Surface
             Palauttaa pygame.Surface olion
         """
-        fontti_valmis = pygame.font.SysFont(fontti, teksti_koko, bold=lihavoitu, italic=kursivoitu)
-        teksti_valmis = fontti_valmis.render(teksti, True, teksti_vari)
+        fontti_valmis = pygame.font.SysFont(fontti, koko, bold=lihavoitu, italic=kursivoitu)
+        teksti_valmis = fontti_valmis.render(teksti, True, vari)
         return teksti_valmis
 
 if __name__ == "__main__":
