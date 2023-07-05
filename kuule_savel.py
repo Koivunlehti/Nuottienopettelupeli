@@ -17,6 +17,9 @@ class Kuule_Savel():
         self.midi_alue = (60,71)
         self.midi = self.midi_alue[0]
 
+        # Otsikkoteksti
+        self.otsikkoteksti = "Mikä sävel?"
+
         # Painikkeet
         self.vastauspainikkeet = []
         self.vastauspainikkeet_hiiri_paalla = []
@@ -65,7 +68,7 @@ class Kuule_Savel():
             self.naytto.blit(valikko,(0, 0))
             
             # Luodaan otsikkoteksti
-            otsikko = ui_komponentit.Luo_Teksti(teksti="Mikä sävel?", koko=42)
+            otsikko = ui_komponentit.Luo_Teksti(teksti=self.otsikkoteksti, koko=42)
             self.naytto.blit(otsikko,(self.naytto.get_width() / 2 -  otsikko.get_width() / 2, 100))
             
             # Luodaan keskialueen muuttuvia sisältöjä
@@ -75,13 +78,13 @@ class Kuule_Savel():
                 uudelleen_painike = self.naytto.blit(uudelleen_painike,(self.naytto.get_width() / 2 - uudelleen_painike.get_width() / 2, self.naytto.get_height() / 2 - uudelleen_painike.get_height() / 2))
             else:
                 if self.soita_savelet == True:
-                    laskuri_teksti = ui_komponentit.Luo_Teksti(teksti=f"Sävelien läpikäynti: {self.soiva_savel}", koko=42)
+                    laskuri_teksti = ui_komponentit.Luo_Teksti(teksti=f"{self.soiva_savel}", koko=52)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
                 else:    
                     laskuri_teksti = ui_komponentit.Luo_Teksti(teksti=f"Valmistaudu ... {str(self.valmistaudu_laskuri)}", koko=42)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
 
-            # Oikein ja väärin tekstit
+            # Luodaan Oikein ja väärin tekstit
             if self.oikein_vaarin_ajastin > 0:
                     if self.oikein_vaarin_teksti == "Oikein":
                         teksti_vari = "Green"
@@ -90,13 +93,17 @@ class Kuule_Savel():
                     oikein_vaarin_teksti = ui_komponentit.Luo_Teksti(teksti=self.oikein_vaarin_teksti, koko=42, vari=teksti_vari)
                     self.naytto.blit(oikein_vaarin_teksti,(self.naytto.get_width() / 2 - oikein_vaarin_teksti.get_width() / 2, self.naytto.get_height() - 260))
 
-            # Luodaan ja päivitetään vastauspainikkeet
+            # Luodaan vastauspainikkeet
             self.__Luo_Vastauspainikkeet()
 
             # Tapahtumat
             for tapahtuma in pygame.event.get():
                 if tapahtuma.type == pygame.QUIT:   # Ikkunan yläkulman X painike
-                    return
+                    exit()
+
+                if tapahtuma.type == pygame.KEYDOWN:    
+                    if tapahtuma.key == pygame.K_ESCAPE:    # ESC-näppäin
+                        return
                 
                 if tapahtuma.type == pygame.VIDEORESIZE:    # Ikkunan koon muutos 
                     # Ruudun minimikoko
@@ -112,6 +119,7 @@ class Kuule_Savel():
                                 if apufunktiot.Savel_Tekstina(self.midi)[0] == self.vastauspainikkeet[i][1]:
                                     self.valmistaudu = True
                                     self.vastauspainikkeet_vaarin = []
+                                    self.otsikkoteksti = f"Sävel oli {apufunktiot.Savel_Tekstina(self.midi)[0]}"
                                     self.oikein_vaarin_teksti = "Oikein"
                                     self.oikein_vaarin_ajastin = 60
                                     self.oikein_maara += 1
@@ -147,6 +155,7 @@ class Kuule_Savel():
 
             # Sävelten läpisoitto 
             if self.soita_savelet:
+                self.otsikkoteksti = "Sävelten läpikäynti..."
                 if self.ajastin == 60:
                     if self.midi > self.midi_alue[0]:
                         self.soitin.note_off(self.midi - 1, 127, 0)
@@ -156,6 +165,8 @@ class Kuule_Savel():
                         self.ajastin = 0
                         self.midi = self.midi_alue[0]
                         self.soita_savelet = False
+                        self.otsikkoteksti = "Mikä sävel?"
+                        
                     else:
                         self.soitin.note_on(self.midi, 127, 0)
                         self.ajastin = 0
@@ -172,6 +183,7 @@ class Kuule_Savel():
                     self.valmistaudu_laskuri = 3
                     self.__Arvo_Midi()
                     self.soitin.note_on(self.midi,127,0)
+                    self.otsikkoteksti = "Mikä sävel?"
                 else:
                     self.ajastin += 1
                     if self.ajastin % 60 == 0:
@@ -179,6 +191,7 @@ class Kuule_Savel():
             else:
                 pass
             
+            # Oikein / Väärin tekstin ajastin
             if self.oikein_vaarin_ajastin > 0:
                 self.oikein_vaarin_ajastin -= 1
 
