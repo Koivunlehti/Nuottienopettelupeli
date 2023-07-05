@@ -16,9 +16,11 @@ class Kuule_Savel():
         self.soitin.set_instrument(0,1)
         self.midi_alue = (60,71)
         self.midi = self.midi_alue[0]
+        self.ilman_korotusta = False
 
         # Otsikkoteksti
         self.otsikkoteksti = "Mikä sävel?"
+        self.aliteksti = ""
 
         # Painikkeet
         self.vastauspainikkeet = []
@@ -28,6 +30,8 @@ class Kuule_Savel():
         self.vastauspainikkeet_vari_vaarin_1 = (200,50,50)
         self.vastauspainikkeet_vari_vaarin_2 = (150,50,50)
         self.vastauspainikkeet_vaarin = []
+        self.savelet = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"]
+
 
         self.uudelleen_painike_vari_1 = (60,120,70)
         self.uudelleen_painike_vari_2 = (60,170,70)
@@ -38,13 +42,19 @@ class Kuule_Savel():
         self.oikein_maara = 0
         self.vaarin_maara = 0
 
-        # pisteet
+        # Pisteet
         self.pisteet = 0
         self.arvausmaara = 3
 
+        # Pelitaso
+        self.pelitaso = 1
+        self.pelitaso_oikein_talla_tasolla = 0
+        self.pelitaso_vaihda = False
+        self.pelitaso_vaadittu_oikein_maara = 20
+
         # Sävelten soitto
         self.soita_savelet = True
-        self.soiva_savel = ""
+        
 
         # Valmistaudu vaihe
         self.valmistaudu = False
@@ -57,6 +67,8 @@ class Kuule_Savel():
         
     
     def Aloita(self):
+        
+        self.__Tarkista_Taso()
 
         while True:
             # Muuttujien uudelleen alustus
@@ -72,15 +84,15 @@ class Kuule_Savel():
             self.naytto.blit(otsikko,(self.naytto.get_width() / 2 -  otsikko.get_width() / 2, 100))
             
             # Luodaan keskialueen muuttuvia sisältöjä
-            if self.valmistaudu == False and self.soita_savelet == False:
+            if self.valmistaudu == False and self.soita_savelet == False and self.pelitaso_vaihda == False:
                 uudelleen_painike = ui_komponentit.Luo_Painike(taustavari=self.uudelleen_painike_vari_1, taustavari_hiiri_paalla=self.uudelleen_painike_vari_2, 
                                                    hiiri_paalla=self.uudelleen_painike_hiiri_paalla, teksti="Toista uudelleen", reunus=30)
                 uudelleen_painike = self.naytto.blit(uudelleen_painike,(self.naytto.get_width() / 2 - uudelleen_painike.get_width() / 2, self.naytto.get_height() / 2 - uudelleen_painike.get_height() / 2))
             else:
-                if self.soita_savelet == True:
-                    laskuri_teksti = ui_komponentit.Luo_Teksti(teksti=f"{self.soiva_savel}", koko=52)
+                if self.soita_savelet == True or self.pelitaso_vaihda == True:
+                    laskuri_teksti = ui_komponentit.Luo_Teksti(teksti=f"{self.aliteksti}", koko=52)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
-                else:    
+                elif self.valmistaudu == True:    
                     laskuri_teksti = ui_komponentit.Luo_Teksti(teksti=f"Valmistaudu ... {str(self.valmistaudu_laskuri)}", koko=42)
                     self.naytto.blit(laskuri_teksti,(self.naytto.get_width() / 2 -  laskuri_teksti.get_width() / 2, 200))
 
@@ -123,6 +135,7 @@ class Kuule_Savel():
                                     self.oikein_vaarin_teksti = "Oikein"
                                     self.oikein_vaarin_ajastin = 60
                                     self.oikein_maara += 1
+                                    self.pelitaso_oikein_talla_tasolla += 1
                                     self.pisteet += self.arvausmaara * 10
                                     if self.pisteet < 0:
                                         self.pisteet = 0
@@ -133,8 +146,7 @@ class Kuule_Savel():
                                     self.oikein_vaarin_teksti = "Väärin"
                                     self.oikein_vaarin_ajastin = 60
                                     self.vaarin_maara += 1
-                                    self.arvausmaara -= 1
-                                    
+                                    self.arvausmaara -= 1                                    
 
                         if uudelleen_painike.collidepoint(tapahtuma.pos):
                             self.soitin.note_off(self.midi,127,0)
@@ -153,8 +165,25 @@ class Kuule_Savel():
                 else:
                     self.uudelleen_painike_hiiri_paalla = False
 
+            # Tason vaihto
+            if self.pelitaso_vaihda:
+                if self.pelitaso == 1:
+                    self.otsikkoteksti = f"Aloitetaan peli"
+                else:
+                    pass
+                    #self.otsikkoteksti = f"Saavutit tason: {self.pelitaso}!"
+                self.aliteksti = f"Taso {self.pelitaso}"
+                if self.ajastin >= 180: 
+                    self.ajastin = 0
+                    self.soita_savelet = True
+                    self.pelitaso_vaihda = False
+                    self.midi = 60
+                    self.aliteksti = ""
+                else:
+                    self.ajastin += 1
+
             # Sävelten läpisoitto 
-            if self.soita_savelet:
+            elif self.soita_savelet:
                 self.otsikkoteksti = "Sävelten läpikäynti..."
                 if self.ajastin == 60:
                     if self.midi > self.midi_alue[0]:
@@ -165,16 +194,18 @@ class Kuule_Savel():
                         self.ajastin = 0
                         self.midi = self.midi_alue[0]
                         self.soita_savelet = False
-                        self.otsikkoteksti = "Mikä sävel?"
+                        self.otsikkoteksti = ""
                         
                     else:
                         self.soitin.note_on(self.midi, 127, 0)
                         self.ajastin = 0
-                        self.soiva_savel = apufunktiot.Savel_Tekstina(self.midi)[0]
+                        self.aliteksti = apufunktiot.Savel_Tekstina(self.midi)[0]
                         self.midi += 1
-                        
+                        if self.ilman_korotusta and "#" in apufunktiot.Savel_Tekstina(self.midi)[0]:
+                            self.midi += 1
                 else:
                     self.ajastin += 1
+
             # Valmistautumisvaihe
             elif self.valmistaudu:
                 if self.ajastin >= 180:
@@ -191,6 +222,12 @@ class Kuule_Savel():
             else:
                 pass
             
+            # Tarkistetaan onko tason vaihto ajankohtainen
+            if self.pelitaso_oikein_talla_tasolla >= self.pelitaso_vaadittu_oikein_maara:
+                self.pelitaso += 1
+                self.pelitaso_oikein_talla_tasolla = 0
+                self.__Tarkista_Taso()
+
             # Oikein / Väärin tekstin ajastin
             if self.oikein_vaarin_ajastin > 0:
                 self.oikein_vaarin_ajastin -= 1
@@ -200,18 +237,23 @@ class Kuule_Savel():
             pygame.display.flip()  
 
     def __Arvo_Midi(self):
-        self.midi = random.randint(self.midi_alue[0],self.midi_alue[1])
+        if self.ilman_korotusta:
+            while True:
+                self.midi = random.randint(self.midi_alue[0], self.midi_alue[1])
+                if "#" not in apufunktiot.Savel_Tekstina(self.midi)[0]:
+                    break
+        else:
+            self.midi = random.randint(self.midi_alue[0], self.midi_alue[1])
 
     def __Luo_Vastauspainikkeet(self):
         # Muuttujien alustus
         self.vastauspainikkeet = []
-        savelet = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"]
         painike_vali = 10
-        painike_leveys = self.naytto.get_width() / len(savelet) - painike_vali
+        painike_leveys = self.naytto.get_width() / len(self.savelet) - painike_vali
         
-        painike_x = self.naytto.get_width() / 2 - (len(savelet) / 2) * (painike_leveys + painike_vali) + (painike_vali / 2)
+        painike_x = self.naytto.get_width() / 2 - (len(self.savelet) / 2) * (painike_leveys + painike_vali) + (painike_vali / 2)
         
-        for i in range(12):
+        for i in range(len(self.savelet)):
             hiiri_paalla = False
 
             # Jos vastauspainikkeiden "hiiri_päällä" lista on tyhjä, alustetaan se tässä False arvoilla.
@@ -223,7 +265,7 @@ class Kuule_Savel():
                 hiiri_paalla = True
 
             # Vastauspainikkeiden värimuutoksia
-            if savelet[i] in self.vastauspainikkeet_vaarin:
+            if self.savelet[i] in self.vastauspainikkeet_vaarin:
                 taustavari = self.vastauspainikkeet_vari_vaarin_1
                 taustavari_hiiri_paalla = self.vastauspainikkeet_vari_vaarin_2
             else:
@@ -232,10 +274,68 @@ class Kuule_Savel():
 
             # Luodaan painike   
             painike = self.naytto.blit(ui_komponentit.Luo_Painike(taustavari=taustavari, taustavari_hiiri_paalla=taustavari_hiiri_paalla, 
-                                                            hiiri_paalla=hiiri_paalla, teksti=savelet[i], reunus=30, leveys_x=painike_leveys), (painike_x, self.naytto.get_height() - 200))
+                                                            hiiri_paalla=hiiri_paalla, teksti=self.savelet[i], reunus=30, leveys_x=painike_leveys), (painike_x, self.naytto.get_height() - 200))
             painike_x += painike.width + painike_vali
-            self.vastauspainikkeet.append((painike, savelet[i]))
+            self.vastauspainikkeet.append((painike, self.savelet[i]))
 
+    def __Vastauspainikkeiden_Savelet(self, savelet:list):
+        self.savelet = savelet
+        self.vastauspainikkeet_hiiri_paalla = []
+
+    def __Tarkista_Taso(self):
+        if self.pelitaso == 1:
+            self.pelitaso_vaihda = True
+            self.__Vastauspainikkeiden_Savelet(["C", "D"])
+            self.midi_alue = (60, 62)
+            self.ilman_korotusta = True
+
+        elif self.pelitaso == 2:
+            self.pelitaso_vaihda = True
+            self.__Vastauspainikkeiden_Savelet(["C", "D", "E"])
+            self.midi_alue = (60, 64)
+            self.ilman_korotusta = True
+            self.valmistaudu = False
+            self.soita_savelet = False
+
+        elif self.pelitaso == 3:
+            self.pelitaso_vaihda = True
+            self.__Vastauspainikkeiden_Savelet(["C", "D", "E", "F"])
+            self.midi_alue = (60, 65)
+            self.ilman_korotusta = True
+            self.valmistaudu = False
+            self.soita_savelet = False
+
+        elif self.pelitaso == 4:
+            self.pelitaso_vaihda = True
+            self.__Vastauspainikkeiden_Savelet(["C", "D", "E", "F", "G"])
+            self.midi_alue = (60, 67)
+            self.ilman_korotusta = True
+            self.valmistaudu = False
+            self.soita_savelet = False
+        
+        elif self.pelitaso == 5:
+            self.pelitaso_vaihda = True
+            self.__Vastauspainikkeiden_Savelet(["C", "D", "E", "F", "G", "A"])
+            self.midi_alue = (60, 69)
+            self.ilman_korotusta = True
+            self.valmistaudu = False
+            self.soita_savelet = False
+
+        elif self.pelitaso == 6:
+            self.pelitaso_vaihda = True
+            self.__Vastauspainikkeiden_Savelet(["C", "D", "E", "F", "G", "A", "H"])
+            self.midi_alue = (60, 71)
+            self.ilman_korotusta = True
+            self.valmistaudu = False
+            self.soita_savelet = False
+
+        elif self.pelitaso == 7:
+            self.pelitaso_vaihda = True
+            self.__Vastauspainikkeiden_Savelet(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"])
+            self.midi_alue = (60, 71)
+            self.ilman_korotusta = False
+            self.valmistaudu = False
+            self.soita_savelet = False
 
 if __name__ == "__main__":
     pygame.init()
