@@ -19,7 +19,7 @@ class Kuule_Savel():
         self.ilman_korotusta = False
 
         # Otsikkoteksti
-        self.otsikkoteksti = "Mikä sävel?"
+        self.otsikkoteksti = "Aloitetaan peli"
         self.aliteksti = ""
 
         # Painikkeet
@@ -51,6 +51,7 @@ class Kuule_Savel():
         self.pelitaso_oikein_talla_tasolla = 0
         self.pelitaso_vaihda = False
         self.pelitaso_vaadittu_oikein_maara = 20
+        self.pelitaso_maksimi = 7
 
         # Sävelten soitto
         self.soita_savelet = True
@@ -159,7 +160,7 @@ class Kuule_Savel():
                 else:
                     self.vastauspainikkeet_hiiri_paalla[i] = False
 
-            if self.valmistaudu == False and self.soita_savelet == False:
+            if self.valmistaudu == False and self.soita_savelet == False and self.pelitaso_vaihda == False:
                 if uudelleen_painike.collidepoint((hiiri_x, hiiri_y)):
                     self.uudelleen_painike_hiiri_paalla = True
                 else:
@@ -169,9 +170,6 @@ class Kuule_Savel():
             if self.pelitaso_vaihda:
                 if self.pelitaso == 1:
                     self.otsikkoteksti = f"Aloitetaan peli"
-                else:
-                    pass
-                    #self.otsikkoteksti = f"Saavutit tason: {self.pelitaso}!"
                 self.aliteksti = f"Taso {self.pelitaso}"
                 if self.ajastin >= 180: 
                     self.ajastin = 0
@@ -223,7 +221,7 @@ class Kuule_Savel():
                 pass
             
             # Tarkistetaan onko tason vaihto ajankohtainen
-            if self.pelitaso_oikein_talla_tasolla >= self.pelitaso_vaadittu_oikein_maara:
+            if self.pelitaso_oikein_talla_tasolla >= self.pelitaso_vaadittu_oikein_maara and self.pelitaso < self.pelitaso_maksimi:
                 self.pelitaso += 1
                 self.pelitaso_oikein_talla_tasolla = 0
                 self.__Tarkista_Taso()
@@ -337,9 +335,9 @@ class Kuule_Savel():
             self.valmistaudu = False
             self.soita_savelet = False
 
-if __name__ == "__main__":
-    pygame.init()
-    pygame.midi.init()
-    soitin = pygame.midi.Output(0)
-    kuule_savel = Kuule_Savel(soitin)
-    kuule_savel.Aloita()
+# if __name__ == "__main__":
+#     pygame.init()
+#     pygame.midi.init()
+#     soitin = pygame.midi.Output(0)
+#     kuule_savel = Kuule_Savel(soitin)
+#     kuule_savel.Aloita()
