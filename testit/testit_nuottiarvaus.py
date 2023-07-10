@@ -1,16 +1,22 @@
 import unittest
+from unittest.mock import patch
 from nuottiarvaus import Nuottiarvaus
-import pygame.midi
-
-pygame.midi.init()
-soitin = pygame.midi.Output(0)
+import pygame
 
 class Test_Nuottien_Toiminta(unittest.TestCase):
 
-    def setUp(self):
-        
+    @classmethod
+    def setUpClass(cls):
+        pygame.init()
+
+    @patch("pygame.midi.Output")
+    def setUp(self, soitin):
         self.nuottiarvaus = Nuottiarvaus(soitin)
         self.paikat_diskantti = self.nuottiarvaus.paikat_diskantti
+
+    @classmethod
+    def tearDownClass(cls):
+        pygame.quit()
 
     # Nuottien Arvonnan testejä
 

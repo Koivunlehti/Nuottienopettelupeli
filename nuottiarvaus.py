@@ -6,7 +6,6 @@ import piirto, koskettimet, apufunktiot
 
 class Nuottiarvaus():
     def __init__(self, midi_soitin:pygame.midi.Output, resoluutio:tuple = (1000, 800)):
-        pygame.init()
 
         # Midi soittimen alustus
         self.soitin = midi_soitin

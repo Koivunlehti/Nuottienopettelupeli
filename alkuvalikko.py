@@ -9,7 +9,7 @@ pygame.init()
 
 # Soitin
 pygame.midi.init()
-soitin = pygame.midi.Output(0)
+soitin = pygame.midi.Output(pygame.midi.get_default_output_id())
 
 # Näyttö
 pygame.display.set_caption("Alkuvalikko")
