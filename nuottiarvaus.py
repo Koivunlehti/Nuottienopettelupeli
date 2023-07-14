@@ -30,10 +30,12 @@ class Nuottiarvaus():
         self.oikea_vastaus_ajastin = 0
 
         # Viivasto
-        self.diskantti_keski_c_y = self.naytto.get_height() / 2 - 30
-        self.basso_keski_c_y = self.naytto.get_height() / 2 + 30
+        self.viivasto_etaisyys_y = 30
+        self.diskantti_keski_c_y = self.naytto.get_height() / 2 - self.viivasto_etaisyys_y
+        self.basso_keski_c_y = self.naytto.get_height() / 2 + self.viivasto_etaisyys_y
         self.viivasto_rivivali = 20
         self.viivaston_leveys = 700
+        self.merkkien_valinen_tila = 20
 
         # Koskettimet
         self.alku_midi = 36
@@ -55,12 +57,8 @@ class Nuottiarvaus():
         self.diskantti = True
 
         # Rajaviivan sijainti
-        self.rajaviiva_x = self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + 150
+        self.rajaviiva_x = 0
         self.rajaviiva_paksuus = 4
-
-        # Arvausalue
-        self.arvausalue_x = 0
-        self.arvausalue_leveys = 350
 
         # Pisteet
         self.pisteet = 0
@@ -80,6 +78,7 @@ class Nuottiarvaus():
         
         while True:
             self.naytto.fill((0,0,0))
+            naytto_vanha_koko = self.naytto.get_size()
 
             for tapahtuma in pygame.event.get():
                 if tapahtuma.type == pygame.QUIT:   # Ikkunan yläkulman X painike
@@ -93,17 +92,17 @@ class Nuottiarvaus():
                         self.naytto = pygame.display.set_mode((750, pygame.display.get_window_size()[1]), RESIZABLE)
                     if pygame.display.get_window_size()[1] < 700:
                         self.naytto = pygame.display.set_mode((pygame.display.get_window_size()[0], 700), RESIZABLE)
+
                     # Nuotin ero rajaviivaan x-akselilla ennen ikkunan koon muutosta
-                    nuotti_x_ero = self.nuotti_x - self.rajaviiva_x
+                    nuotti_x_ero = self.nuotti_x - naytto_vanha_koko[0] / 2 
 
                     # Tärkeiden elementtien x- ja y-koordinaattien päivitys
-                    self.diskantti_keski_c_y = self.naytto.get_height() / 2 - 30
-                    self.basso_keski_c_y = self.naytto.get_height() / 2 + 30
+                    self.diskantti_keski_c_y = self.naytto.get_height() / 2 - self.viivasto_etaisyys_y
+                    self.basso_keski_c_y = self.naytto.get_height() / 2 + self.viivasto_etaisyys_y
                     self.paikat_diskantti, self.paikat_basso = self.__Nuottien_Paikat()
-                    self.rajaviiva_x = self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + 150
 
                     # Nuotin uudet koordinaatit 
-                    self.nuotti_x = self.rajaviiva_x + nuotti_x_ero
+                    self.nuotti_x = self.naytto.get_width() / 2 + nuotti_x_ero
                     if self.diskantti:
                         self.nuotti_y = self.paikat_diskantti[self.nuotti_midi][0]
                     else:
@@ -120,17 +119,15 @@ class Nuottiarvaus():
 
                         # Painetun koskettimen vertaaminen haettavaan nuottiin
                         if kosketin[1] == self.nuotti_midi:
-                            if self.nuotti_x <= self.arvausalue_x + self.arvausalue_leveys:
-                                self.luo_nuotti = True
-                                self.pisteet += 5 * self.taso
-                                self.oikein_maara += 1
-                                self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "green")
-                                self.oikea_vastaus_ajastin = 200
+                            self.luo_nuotti = True
+                            self.pisteet += 5 * self.taso
+                            self.oikein_maara += 1
+                            self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "green")
+                            self.oikea_vastaus_ajastin = 200
                         else:
-                            if self.nuotti_x <= self.arvausalue_x + self.arvausalue_leveys:
-                                self.pisteet -= 5 * self.taso
-                                self.oikein_maara -= 1
-                                self.virhe_maara += 1
+                            self.pisteet -= 5 * self.taso
+                            self.oikein_maara -= 1
+                            self.virhe_maara += 1
 
                     musta_klikattu = False
                     for kosketin in self.koskettimet_musta:
@@ -150,7 +147,7 @@ class Nuottiarvaus():
                 self.__Luo_Nuotti()
 
             else:
-                if self.nuotti_x > self.arvausalue_x:
+                if self.nuotti_x > self.rajaviiva_x:
                     self.nuotti_x -= 1
                 else:
                     self.luo_nuotti = True
@@ -192,52 +189,40 @@ class Nuottiarvaus():
             akkoladi = nuottikirjoitus.Luo_Akkoladi(self.paikat_basso[43][0] - self.paikat_diskantti[77][0])
             paatosviiva = nuottikirjoitus.Luo_Paatosviiva(self.paikat_basso[43][0] - self.paikat_diskantti[77][0])
             g_avain, g_korjaus = nuottikirjoitus.Luo_G_Avain()
-            f_avain, f_korjaus = nuottikirjoitus.Luo_F_Avain()        
+            f_avain, f_korjaus = nuottikirjoitus.Luo_F_Avain()
             savellaji, savellaji_korjaus = nuottikirjoitus.Luo_Savellaji(self.savellaji, self.viivasto_rivivali)
-
-            arvaus_alue = pygame.draw.rect(self.naytto, (6, 148, 3), 
-                             [self.naytto.get_width() / 2 - viivasto_diskantti.get_width() / 2 + g_avain.get_width() + savellaji.get_width() + 60, 
-                              self.paikat_diskantti[90][0], self.arvausalue_leveys, (self.paikat_diskantti[90][0] - self.paikat_basso[32][0]) * -1])
-            
-            self.arvausalue_x = arvaus_alue.x
 
             self.naytto.blit(viivasto_diskantti,(self.naytto.get_width() / 2 - viivasto_diskantti.get_width() / 2, self.paikat_diskantti[77][0]))
             self.naytto.blit(viivasto_basso,(self.naytto.get_width() / 2 - viivasto_basso.get_width() / 2, self.paikat_basso[57][0]))
             self.naytto.blit(akkoladi, (self.naytto.get_width() / 2 - self.viivaston_leveys / 2 - akkoladi.get_width(), self.paikat_diskantti[77][0]))
             self.naytto.blit(paatosviiva,(self.naytto.get_width() / 2 + self.viivaston_leveys / 2 - paatosviiva.get_width(), self.paikat_diskantti[77][0]))
-            self.naytto.blit(g_avain,(self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + 20, self.paikat_diskantti[67][0] - g_korjaus))
-            self.naytto.blit(f_avain,(self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + 20, self.paikat_basso[53][0] - f_korjaus))
-            self.naytto.blit(savellaji, (self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + 100, self.paikat_diskantti[77][0] - savellaji_korjaus))
-            self.naytto.blit(savellaji, (self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + 100, self.paikat_basso[53][0] - savellaji_korjaus))
+            g_avain = self.naytto.blit(g_avain,(self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + self.merkkien_valinen_tila, self.paikat_diskantti[67][0] - g_korjaus))
+            f_avain = self.naytto.blit(f_avain,(self.naytto.get_width() / 2 - self.viivaston_leveys / 2 + self.merkkien_valinen_tila, self.paikat_basso[53][0] - f_korjaus))
+            self.naytto.blit(savellaji, (g_avain.x + g_avain.width + self.merkkien_valinen_tila, self.paikat_diskantti[77][0] - savellaji_korjaus))
+            savellaji = self.naytto.blit(savellaji, (g_avain.x + g_avain.width + self.merkkien_valinen_tila, self.paikat_basso[53][0] - savellaji_korjaus))
 
-            pygame.draw.line(self.naytto, (222,40,20), (arvaus_alue.x, self.paikat_diskantti[90][0]), (arvaus_alue.x , self.paikat_basso[32][0]), self.rajaviiva_paksuus)
-            
+            raja_viiva = pygame.draw.line(self.naytto, (222,40,20), (g_avain.x + g_avain.width + 220, self.paikat_diskantti[90][0]), (g_avain.x + g_avain.width + 220, self.paikat_basso[32][0]), self.rajaviiva_paksuus)
+            self.rajaviiva_x = raja_viiva.x
+
+            # Apuviivat
             if self.diskantti:
-                if self.nuotti_y < self.paikat_diskantti[77][0] - self.viivasto_rivivali - self.viivasto_rivivali / 2:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali, 2, True)
+                if self.nuotti_y <= self.paikat_diskantti[77][0]:
+                    viiva_maara = int((self.paikat_diskantti[77][0] - self.nuotti_y) / self.viivasto_rivivali)
+                    apuviivat = nuottikirjoitus.Luo_Apuviivat(60, self.viivasto_rivivali, viiva_maara, True)
                     self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_diskantti[77][0] - apuviivat.get_height()))
-                elif self.nuotti_y < self.paikat_diskantti[77][0] - self.viivasto_rivivali / 2:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali, ylospain=True)
-                    self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_diskantti[77][0] - apuviivat.get_height()))
-                elif self.nuotti_y > self.paikat_diskantti[64][0] + self.viivasto_rivivali:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali, 2)
-                    self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_diskantti[64][0]))
-                elif self.nuotti_y > self.paikat_diskantti[64][0]:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali)
+                elif self.nuotti_y >= self.paikat_diskantti[64][0]:
+                    viiva_maara = int((self.nuotti_y - self.paikat_diskantti[64][0]) / self.viivasto_rivivali)
+                    apuviivat = nuottikirjoitus.Luo_Apuviivat(60, self.viivasto_rivivali, viiva_maara)
                     self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_diskantti[64][0]))
             else:
-                if self.nuotti_y < self.paikat_basso[57][0] - self.viivasto_rivivali - self.viivasto_rivivali / 2:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali, 2, True)
+                if self.nuotti_y <= self.paikat_basso[57][0]:
+                    viiva_maara = int((self.paikat_basso[57][0] - self.nuotti_y) / self.viivasto_rivivali)
+                    apuviivat = nuottikirjoitus.Luo_Apuviivat(60, self.viivasto_rivivali, viiva_maara, True)
                     self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_basso[57][0] - apuviivat.get_height()))
-                elif self.nuotti_y < self.paikat_basso[57][0] - self.viivasto_rivivali / 2:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali, ylospain=True)
-                    self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_basso[57][0] - apuviivat.get_height()))
-                elif self.nuotti_y > self.paikat_basso[43][0] + self.viivasto_rivivali:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali, 2)
-                    self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_basso[43][0]))
-                elif self.nuotti_y > self.paikat_basso[43][0]:
-                    apuviivat = nuottikirjoitus.Luo_Apuviivat(50, self.viivasto_rivivali, 1)
-                    self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_basso[43][0]))         
+                elif self.nuotti_y >= self.paikat_basso[43][0]:
+                    viiva_maara = int((self.nuotti_y - self.paikat_basso[43][0]) / self.viivasto_rivivali)
+                    apuviivat = nuottikirjoitus.Luo_Apuviivat(60, self.viivasto_rivivali, viiva_maara)
+                    self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_basso[43][0]))        
 
             # Ylennysmerkin piirto
             if self.piirra_ylennetty:
