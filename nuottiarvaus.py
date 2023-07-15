@@ -2,7 +2,7 @@ import pygame
 import pygame.midi
 from pygame.locals import *
 import random
-import nuottikirjoitus, koskettimet, apufunktiot
+import nuottikirjoitus, koskettimet, apufunktiot, ui_komponentit
 
 class Nuottiarvaus():
     def __init__(self, midi_soitin:pygame.midi.Output, resoluutio:tuple = (1000, 800)):
@@ -14,16 +14,7 @@ class Nuottiarvaus():
 
         # Näytön alustus
         pygame.display.set_caption("Nuottiarvaus")
-        self.naytto = pygame.display.set_mode((resoluutio[0], resoluutio[1]), RESIZABLE)
-
-        # Tekstit ja fontit
-        self.fontti = pygame.font.SysFont("Georgia", 48, bold=True)
-        self.fontti_2 = pygame.font.SysFont("Georgia", 18, bold=True)
-        self.pisteet_teksti = self.fontti.render("Pisteet: 0", True, "white")
-        self.edellinen_oikea_vastaus = self.fontti.render("", True, "white")
-        self.nykyinen_vastaus_teksti = ""
-        self.taso_teksti = self.fontti.render("Taso: 1 (0 / 10)", True, "white")
-        self.virheet_teksti = self.fontti.render("Virheet: 0 / 5", True, "white")
+        self.naytto = pygame.display.set_mode(resoluutio, RESIZABLE)
 
         # Kello
         self.kello = pygame.time.Clock()
@@ -59,7 +50,6 @@ class Nuottiarvaus():
         self.midi_basso_ylaraja = 65
         self.nuotin_vari = (200,200,200)
         
-
         # Rajaviivan sijainti
         self.rajaviiva_x = 0
         self.rajaviiva_paksuus = 4
@@ -111,6 +101,8 @@ class Nuottiarvaus():
 
                     # Nuotin uudet koordinaatit 
                     self.nuotti_x = self.naytto.get_width() / 2 + nuotti_x_ero
+                    self.nuotti_alku_x = self.nuotti_alku_x + (self.naytto.get_width() - naytto_vanha_koko[0]) / 2
+                    
                     if self.diskantti:
                         self.nuotti_y = self.paikat_diskantti[self.nuotti_midi][0]
                     else:
@@ -130,7 +122,8 @@ class Nuottiarvaus():
                             self.luo_nuotti = True
                             self.pisteet += 5 * self.taso
                             self.oikein_maara += 1
-                            self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "green")
+                            #self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "green")
+                            self.edellinen_oikea_vastaus = (self.nykyinen_vastaus_teksti, "green")
                             self.oikea_vastaus_ajastin = 200
                         else:
                             self.pisteet -= 5 * self.taso
@@ -163,7 +156,7 @@ class Nuottiarvaus():
                     prosentti -= 50                                                                                 # Vähennetään prosenttimäärää 50:llä, jotta saadaan arvot 50 - (-50).
                     if prosentti < 0:                                                                               # Kun arvot menevät negatiiviseksi, käännetään ne positiiviseksi.
                         prosentti *= -1
-                    vari_arvo = 220 - 220/50 * prosentti                                                            # Lasketaan väriarvo. Käytetään jakajana lukua 50 luvun 100 sijaan, jotta saadaan kaikki arvot 220-0 välillä
+                    vari_arvo = 200 - 200/50 * prosentti                                                            # Lasketaan väriarvo. Käytetään jakajana lukua 50 luvun 100 sijaan, jotta saadaan kaikki arvot 220-0 välillä
                     # tarkistetaan sopiva arvo
                     if vari_arvo < 0:
                         vari_arvo *= -1
@@ -171,16 +164,17 @@ class Nuottiarvaus():
                         vari_arvo = 255
                     # Nuotin puolessa matkassa vaihdetaan värin muutoksen kohdetta
                     if self.nuotti_x - self.rajaviiva_x > (self.nuotti_alku_x - self.rajaviiva_x) / 2:
-                        self.nuotin_vari = (vari_arvo, 220, 20)
+                        self.nuotin_vari = (vari_arvo, 200, 20)
                     else:
-                        self.nuotin_vari = (220, vari_arvo, 20)
+                        self.nuotin_vari = (200, vari_arvo, 20)
 
                 else:
                     self.luo_nuotti = True
                     self.soitin.note_off(60, 127,5)
                     self.soitin.note_on(60, 127,5)
                     self.pisteet -= 10 * self.taso
-                    self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "red")
+                    #self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "red")
+                    self.edellinen_oikea_vastaus = (self.nykyinen_vastaus_teksti, "red")
                     self.oikea_vastaus_ajastin = 200
                     self.virhe_maara += 1
                     self.oikein_maara -= 1
@@ -200,8 +194,8 @@ class Nuottiarvaus():
                 else:
                     pygame.draw.rect(self.naytto,(240,240,240),kosketin[0])
                 if kosketin[1] == 60:   # Piirretään keski-C kirjain
-                    teksti = self.fontti_2.render("C", True, "black")
-                    self.naytto.blit(teksti, (kosketin[0].x + kosketin[0].width / 2 - teksti.get_width() / 2, kosketin[0].y + kosketin[0].height / 2 + 20))
+                    keski_c = ui_komponentit.Luo_Teksti(teksti="C", vari="black", koko=26)
+                    self.naytto.blit(keski_c, (kosketin[0].x + kosketin[0].width / 2 - keski_c.get_width() / 2, kosketin[0].y + kosketin[0].height / 2 + 18))
 
             for kosketin in self.koskettimet_musta:  # Piirretään mustat koskettimet. Jos hiiri havaitaan koskettimen päällä, koskettimen väritystä muutetaan
                 if kosketin[0].x <= hiiri_x <= kosketin[0].x + kosketin[0].width and kosketin[0].y <= hiiri_y <= kosketin[0].y + kosketin[0].height:
@@ -209,7 +203,8 @@ class Nuottiarvaus():
                 else:
                     pygame.draw.rect(self.naytto,(50,50,50),kosketin[0])
 
-            # Grafiikan luontia
+            # GRAFIIKAN LUONTIA
+
             viivasto_diskantti = nuottikirjoitus.Luo_Viivasto(self.viivaston_leveys, self.viivasto_rivivali)
             viivasto_basso = nuottikirjoitus.Luo_Viivasto(self.viivaston_leveys, self.viivasto_rivivali)
             akkoladi = nuottikirjoitus.Luo_Akkoladi(self.paikat_basso[43][0] - self.paikat_diskantti[77][0])
@@ -250,7 +245,7 @@ class Nuottiarvaus():
                     apuviivat = nuottikirjoitus.Luo_Apuviivat(60, self.viivasto_rivivali, viiva_maara)
                     self.naytto.blit(apuviivat,(self.nuotti_x - apuviivat.get_width() / 4, self.paikat_basso[43][0]))        
 
-            # Ylennysmerkin piirto
+            # Ylennys, alennus ja palautus
             if self.piirra_ylennetty:
                 ylennys, ylennys_korjaus = nuottikirjoitus.Luo_Ylennys()
                 self.naytto.blit(ylennys, (self.nuotti_x - ylennys.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - ylennys_korjaus))
@@ -261,33 +256,32 @@ class Nuottiarvaus():
                 palautus, palautus_korjaus = nuottikirjoitus.Luo_Palautus()
                 self.naytto.blit(palautus,(self.nuotti_x - palautus.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - palautus_korjaus))
 
-            # Nuotti piirto
+            # Nuotti
             nuotti, nuotti_korjaus = nuottikirjoitus.Luo_4_Osa_Nuotti(vari = self.nuotin_vari)
             self.naytto.blit(nuotti,(self.nuotti_x, self.nuotti_y - nuotti_korjaus))
            
-            # Pisteiden piirto
+           # Ylävalikko
+            yla_valikko = ui_komponentit.Luo_ylavalikko_pelkistetty(leveys = self.naytto.get_width(), reunus=(20,0), taustavari="dark green", 
+                                                                    teksti_vasen=f"Oikein: {self.oikein_maara}/10", teksti_keski=f"Taso: {self.taso}", 
+                                                                    teksti_oikea=f"Virheet: {self.virhe_maara}/5", teksti_koko=40)
+            self.naytto.blit(yla_valikko,(0,0))
+            
+            # Pisteet
             if self.pisteet < 0:
                 self.pisteet = 0
-            self.pisteet_teksti = self.fontti.render(f"Pisteet: {self.pisteet}", True, "white")
-            self.naytto.blit(self.pisteet_teksti, (0, self.naytto.get_height() - self.kosk_korkeus - self.pisteet_teksti.get_height()))
+            pisteet_teksti = ui_komponentit.Luo_Teksti(teksti=f"Pisteet: {self.pisteet}", koko=42, lihavoitu=True)
+            self.naytto.blit(pisteet_teksti,(20,yla_valikko.get_height()))
 
-            # Oikean vastauksen piirto
+            # Oikean vastaus
             if self.oikea_vastaus_ajastin > 0:
-                self.naytto.blit(self.edellinen_oikea_vastaus, (self.naytto.get_width() - self.edellinen_oikea_vastaus.get_width(), self.naytto.get_height() - self.kosk_korkeus - self.pisteet_teksti.get_height()))
+                oikea_vastaus = ui_komponentit.Luo_Teksti(teksti=self.edellinen_oikea_vastaus[0], koko=52, vari=self.edellinen_oikea_vastaus[1])
+                self.naytto.blit(oikea_vastaus, (self.naytto.get_width() / 2 - oikea_vastaus.get_width() / 2, self.naytto.get_height() / 8))
             
             # Virhelaskurin ja oikein laskurin hallintaa
             self.__Virhelaskuri()
             
             if self.oikein_maara < 0:
                 self.oikein_maara = 0
-
-            # Taso tekstin piirto
-            self.taso_teksti = self.fontti.render(f"Taso: {self.taso} ({self.oikein_maara}/10)", True, "white")
-            self.naytto.blit(self.taso_teksti, (0, 0))
-
-            # Virheet tekstin piirto
-            self.virheet_teksti = self.fontti.render(f"Virheet: {self.virhe_maara} / 5", True, "white")
-            self.naytto.blit(self.virheet_teksti, (self.naytto.get_width() - self.virheet_teksti.get_width(), 0))
 
             pygame.display.flip()
 
