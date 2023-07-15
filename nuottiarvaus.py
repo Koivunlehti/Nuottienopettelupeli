@@ -44,17 +44,21 @@ class Nuottiarvaus():
         self.koskettimet_valkoinen, self.koskettimet_musta = koskettimet.Luo_Koskettimet(self.naytto, self.alku_midi, self.loppu_midi, self.kosk_korkeus)
 
         # Haettavan nuotin muuttujat
-        self.paikat_diskantti, self.paikat_basso = self.__Nuottien_Paikat()
+        self.paikat_diskantti, self.paikat_basso = self.__Nuottien_Paikat(self.viivasto_rivivali)
         self.luo_nuotti = True
         self.piirra_ylennetty = False
         self.piirra_alennettu = False
         self.piirra_palautus = False
+        self.diskantti = True
         self.nuotti_x = 0
+        self.nuotti_alku_x = 0
         self.nuotti_y = 0
+        self.nuotin_ja_merkin_ero_x = 10
         self.nuotti_midi = 0
         self.midi_diskantti_alaraja = 57
         self.midi_basso_ylaraja = 65
-        self.diskantti = True
+        self.nuotin_vari = (200,200,200)
+        
 
         # Rajaviivan sijainti
         self.rajaviiva_x = 0
@@ -68,10 +72,10 @@ class Nuottiarvaus():
 
         # Sävellaji
         self.savellaji = "C"
-    
-    def __Nuottien_Paikat(self) -> tuple:
-        return (apufunktiot.Luo_Nuottien_Paikat(self.diskantti_keski_c_y, 10), 
-                apufunktiot.Luo_Nuottien_Paikat(self.basso_keski_c_y, 10))
+
+    def __Nuottien_Paikat(self, rivivali) -> tuple:
+        return (apufunktiot.Luo_Nuottien_Paikat(self.diskantti_keski_c_y, rivivali / 2), 
+                apufunktiot.Luo_Nuottien_Paikat(self.basso_keski_c_y, rivivali / 2))
 
     # Pelisilmukka
     def Aloita(self):
@@ -82,9 +86,12 @@ class Nuottiarvaus():
 
             for tapahtuma in pygame.event.get():
                 if tapahtuma.type == pygame.QUIT:   # Ikkunan yläkulman X painike
-
-                    return # suljetaan pelisilmukka return-lauseella, jonka jälkeen alkuvalikon suoritus jatkuu
-
+                    exit() 
+                
+                if tapahtuma.type == pygame.KEYDOWN:    
+                    if tapahtuma.key == pygame.K_ESCAPE:    # ESC-näppäin
+                        return # suljetaan pelisilmukka return-lauseella, jonka jälkeen alkuvalikon suoritus jatkuu
+                    
                 if tapahtuma.type == pygame.VIDEORESIZE:    # Ikkunan koon muutos
                     
                     # Ruudun minimikoko
@@ -99,7 +106,8 @@ class Nuottiarvaus():
                     # Tärkeiden elementtien x- ja y-koordinaattien päivitys
                     self.diskantti_keski_c_y = self.naytto.get_height() / 2 - self.viivasto_etaisyys_y
                     self.basso_keski_c_y = self.naytto.get_height() / 2 + self.viivasto_etaisyys_y
-                    self.paikat_diskantti, self.paikat_basso = self.__Nuottien_Paikat()
+                    self.paikat_diskantti, self.paikat_basso = self.__Nuottien_Paikat(self.viivasto_rivivali)
+                    self.rajaviiva_x = 0
 
                     # Nuotin uudet koordinaatit 
                     self.nuotti_x = self.naytto.get_width() / 2 + nuotti_x_ero
@@ -149,6 +157,24 @@ class Nuottiarvaus():
             else:
                 if self.nuotti_x > self.rajaviiva_x:
                     self.nuotti_x -= 1
+
+                    # Nuotin väriarvon laskeminen
+                    prosentti = (self.nuotti_x - self.rajaviiva_x) * 100 / (self.nuotti_alku_x - self.rajaviiva_x)  # Prosenttimäärä siitä, missä kohtaa nuotti on matkalla alkupaikan ja rajaviivan välillä.
+                    prosentti -= 50                                                                                 # Vähennetään prosenttimäärää 50:llä, jotta saadaan arvot 50 - (-50).
+                    if prosentti < 0:                                                                               # Kun arvot menevät negatiiviseksi, käännetään ne positiiviseksi.
+                        prosentti *= -1
+                    vari_arvo = 220 - 220/50 * prosentti                                                            # Lasketaan väriarvo. Käytetään jakajana lukua 50 luvun 100 sijaan, jotta saadaan kaikki arvot 220-0 välillä
+                    # tarkistetaan sopiva arvo
+                    if vari_arvo < 0:
+                        vari_arvo *= -1
+                    if vari_arvo > 255:  
+                        vari_arvo = 255
+                    # Nuotin puolessa matkassa vaihdetaan värin muutoksen kohdetta
+                    if self.nuotti_x - self.rajaviiva_x > (self.nuotti_alku_x - self.rajaviiva_x) / 2:
+                        self.nuotin_vari = (vari_arvo, 220, 20)
+                    else:
+                        self.nuotin_vari = (220, vari_arvo, 20)
+
                 else:
                     self.luo_nuotti = True
                     self.soitin.note_off(60, 127,5)
@@ -227,16 +253,16 @@ class Nuottiarvaus():
             # Ylennysmerkin piirto
             if self.piirra_ylennetty:
                 ylennys, ylennys_korjaus = nuottikirjoitus.Luo_Ylennys()
-                self.naytto.blit(ylennys, (self.nuotti_x - ylennys.get_width() - 10, self.nuotti_y - ylennys_korjaus))
+                self.naytto.blit(ylennys, (self.nuotti_x - ylennys.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - ylennys_korjaus))
             if self.piirra_alennettu:
                 alennus, alennus_korjaus = nuottikirjoitus.Luo_Alennus()
-                self.naytto.blit(alennus, (self.nuotti_x - alennus.get_width() - 10, self.nuotti_y - alennus_korjaus))
+                self.naytto.blit(alennus, (self.nuotti_x - alennus.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - alennus_korjaus))
             if self.piirra_palautus:
                 palautus, palautus_korjaus = nuottikirjoitus.Luo_Palautus()
-                self.naytto.blit(palautus,(self.nuotti_x - palautus.get_width() - 10, self.nuotti_y - palautus_korjaus))
+                self.naytto.blit(palautus,(self.nuotti_x - palautus.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - palautus_korjaus))
 
             # Nuotti piirto
-            nuotti, nuotti_korjaus = nuottikirjoitus.Luo_4_Osa_Nuotti()
+            nuotti, nuotti_korjaus = nuottikirjoitus.Luo_4_Osa_Nuotti(vari = self.nuotin_vari)
             self.naytto.blit(nuotti,(self.nuotti_x, self.nuotti_y - nuotti_korjaus))
            
             # Pisteiden piirto
@@ -410,6 +436,7 @@ class Nuottiarvaus():
         
         # nuotin luontietäisyyys x-akselilla
         self.nuotti_x = self.naytto.get_width() / 2 + self.viivaston_leveys / 2 - 20
+        self.nuotti_alku_x = self.nuotti_x
         self.luo_nuotti = False
 
         # oikea vastaussävel tekstimuodossa talteen
