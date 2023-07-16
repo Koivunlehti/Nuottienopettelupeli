@@ -253,17 +253,25 @@ class Nuottiarvaus():
 
             # Ylennys, alennus ja palautus
             if self.piirra_ylennetty:
-                ylennys, ylennys_korjaus = nuottikirjoitus.Luo_Ylennys()
+                ylennys, ylennys_korjaus = nuottikirjoitus.Luo_Ylennys(self.nuotin_vari)
                 self.naytto.blit(ylennys, (self.nuotti_x - ylennys.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - ylennys_korjaus))
             if self.piirra_alennettu:
-                alennus, alennus_korjaus = nuottikirjoitus.Luo_Alennus()
+                alennus, alennus_korjaus = nuottikirjoitus.Luo_Alennus(self.nuotin_vari)
                 self.naytto.blit(alennus, (self.nuotti_x - alennus.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - alennus_korjaus))
             if self.piirra_palautus:
-                palautus, palautus_korjaus = nuottikirjoitus.Luo_Palautus()
+                palautus, palautus_korjaus = nuottikirjoitus.Luo_Palautus(self.nuotin_vari)
                 self.naytto.blit(palautus,(self.nuotti_x - palautus.get_width() - self.nuotin_ja_merkin_ero_x, self.nuotti_y - palautus_korjaus))
 
             # Nuotti
-            nuotti, nuotti_korjaus = nuottikirjoitus.Luo_4_Osa_Nuotti(vari = self.nuotin_vari)
+            kaanna_nuotti = False
+            if self.diskantti:
+                if self.nuotti_midi >= 71:
+                    kaanna_nuotti = True
+            else:
+                if self.nuotti_midi >= 50:
+                    kaanna_nuotti = True 
+
+            nuotti, nuotti_korjaus = nuottikirjoitus.Luo_4_Osa_Nuotti(vari = self.nuotin_vari, kaannetty=kaanna_nuotti)
             self.naytto.blit(nuotti,(self.nuotti_x, self.nuotti_y - nuotti_korjaus))
            
            # Ylävalikko

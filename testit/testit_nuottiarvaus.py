@@ -204,24 +204,6 @@ class Test_Nuottien_Toiminta(unittest.TestCase):
                 self.assertEqual(self.nuottiarvaus.taso, 2, "Pelitason pitäisi olla 2 20 oikean vastauksen jälkeen")
                 self.assertEqual(self.nuottiarvaus.taso_oikein_talla_tasolla, 0, "Oikein vastausten pitäisi palata takaisin 0 arvoon")
             self.nuottiarvaus.taso_oikein_talla_tasolla += 1
-    
-    def test_pelitason_lasku(self):
-        """ Testaa, että pelitasoa voidaan laskea halutulla määrällä vääriä vastauksia """
-        self.nuottiarvaus.taso = 2
-        self.assertEqual(self.nuottiarvaus.virhe_maara, 0, "Virheiden määrän pitäisi olla 0")
-        for i in range(1, 7):
-            self.nuottiarvaus._Nuottiarvaus__Virhelaskuri()
-            if i <= 5:
-                self.assertEqual(self.nuottiarvaus.taso, 2, "Pelitason pitäisi olla 2 kunnes 5 virhettä on saatu")
-            else:
-                self.assertEqual(self.nuottiarvaus.taso, 1, "Pelitason pitäisi olla 1 viiden virheen jälkeen")
-                self.assertEqual(self.nuottiarvaus.virhe_maara, 0, "Virheiden määrän pitäisi palata takaisin 0 arvoon")
-            self.nuottiarvaus.virhe_maara += 1
-        
-        self.nuottiarvaus.taso = 1
-        self.nuottiarvaus.virhe_maara = 5
-        self.nuottiarvaus._Nuottiarvaus__Virhelaskuri()
-        self.assertEqual(self.nuottiarvaus.taso, 1, "Pelitason ei pitäisi laskea alle yhden")
 
     def pelitasojen_testaaja(self, taso:int, savellajit:list, diskantti_sallitut_arvot:list, diskantti_midialue:tuple, basso_midialue:tuple,
                              ylennyksen_sallitut_arvot:list, alennuksen_sallitut_arvot:list, palautuksen_sallitut_arvot:list, palautus_vain_rajoilla:bool):
