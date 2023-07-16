@@ -194,15 +194,16 @@ class Test_Nuottien_Toiminta(unittest.TestCase):
     def test_pelitason_nousu(self):
         """ Testaa, että pelitasoa voidaan nostaa halutulla määrällä oikeita vastauksia """
         self.assertEqual(self.nuottiarvaus.taso, 1, "Pelitason pitäisi alkaa arvosta 1")
-        self.assertEqual(self.nuottiarvaus.oikein_maara, 0, "Oikeiden vastausten määrän pitäisi alkaa arvosta 0")
-        for i in range(1, 12):
+        self.assertEqual(self.nuottiarvaus.taso_oikein_talla_tasolla, 0, "Tason oikeiden vastausten määrän pitäisi alkaa arvosta 0")
+        self.assertEqual(self.nuottiarvaus.taso_vaadittu_oikein_maara, 20, "Vaadittujen oikeiden vastausten määrän pitäisi alkaa arvosta 20")
+        for i in range(1, 22):
             self.nuottiarvaus._Nuottiarvaus__Luo_Nuotti()
-            if i <= 10:
-                self.assertEqual(self.nuottiarvaus.taso, 1, "Pelitason pitäisi olla 1 kunnes 10 oikeaa vastausta on saatu")
+            if i <= 20:
+                self.assertEqual(self.nuottiarvaus.taso, 1, "Pelitason pitäisi olla 1 kunnes 20 oikeaa vastausta on saatu")
             else:
-                self.assertEqual(self.nuottiarvaus.taso, 2, "Pelitason pitäisi olla 2 10 oikean vastauksen jälkeen")
-                self.assertEqual(self.nuottiarvaus.oikein_maara, 0, "Oikein vastausten pitäisi palata takaisin 0 arvoon")
-            self.nuottiarvaus.oikein_maara += 1
+                self.assertEqual(self.nuottiarvaus.taso, 2, "Pelitason pitäisi olla 2 20 oikean vastauksen jälkeen")
+                self.assertEqual(self.nuottiarvaus.taso_oikein_talla_tasolla, 0, "Oikein vastausten pitäisi palata takaisin 0 arvoon")
+            self.nuottiarvaus.taso_oikein_talla_tasolla += 1
     
     def test_pelitason_lasku(self):
         """ Testaa, että pelitasoa voidaan laskea halutulla määrällä vääriä vastauksia """

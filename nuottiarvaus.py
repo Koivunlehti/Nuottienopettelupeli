@@ -56,7 +56,15 @@ class Nuottiarvaus():
 
         # Pisteet
         self.pisteet = 0
+        self.pisteet_oikea_vastaus_max = 30
+        self.pisteet_vahennys_vaara_vastaus = int(self.pisteet_oikea_vastaus_max / 3)
+        self.pisteet_vahennys_rajaviiva = 30
+
+        # Taso
         self.taso = 1
+        self.taso_oikein_talla_tasolla = 0
+        self.taso_vaadittu_oikein_maara  = 20
+
         self.virhe_maara = 0
         self.oikein_maara = 0
 
@@ -120,14 +128,14 @@ class Nuottiarvaus():
                         # Painetun koskettimen vertaaminen haettavaan nuottiin
                         if kosketin[1] == self.nuotti_midi:
                             self.luo_nuotti = True
-                            self.pisteet += 5 * self.taso
+                            prosentti = (self.nuotti_x - self.rajaviiva_x) * 100 / (self.nuotti_alku_x - self.rajaviiva_x)
+                            self.pisteet += int(self.pisteet_oikea_vastaus_max / 100 * prosentti) + 1
                             self.oikein_maara += 1
-                            #self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "green")
+                            self.taso_oikein_talla_tasolla += 1
                             self.edellinen_oikea_vastaus = (self.nykyinen_vastaus_teksti, "green")
                             self.oikea_vastaus_ajastin = 200
                         else:
-                            self.pisteet -= 5 * self.taso
-                            self.oikein_maara -= 1
+                            self.pisteet -= self.pisteet_vahennys_vaara_vastaus
                             self.virhe_maara += 1
 
                     musta_klikattu = False
@@ -172,12 +180,10 @@ class Nuottiarvaus():
                     self.luo_nuotti = True
                     self.soitin.note_off(60, 127,5)
                     self.soitin.note_on(60, 127,5)
-                    self.pisteet -= 10 * self.taso
-                    #self.edellinen_oikea_vastaus = self.fontti.render(self.nykyinen_vastaus_teksti, True, "red")
+                    self.pisteet -= self.pisteet_vahennys_rajaviiva
                     self.edellinen_oikea_vastaus = (self.nykyinen_vastaus_teksti, "red")
                     self.oikea_vastaus_ajastin = 200
                     self.virhe_maara += 1
-                    self.oikein_maara -= 1
 
             # Koskettimien piirto 
             hiiri_x, hiiri_y = pygame.mouse.get_pos()
@@ -262,8 +268,8 @@ class Nuottiarvaus():
            
            # Ylävalikko
             yla_valikko = ui_komponentit.Luo_ylavalikko_pelkistetty(leveys = self.naytto.get_width(), reunus=(20,0), taustavari="dark green", 
-                                                                    teksti_vasen=f"Oikein: {self.oikein_maara}/10", teksti_keski=f"Taso: {self.taso}", 
-                                                                    teksti_oikea=f"Virheet: {self.virhe_maara}/5", teksti_koko=40)
+                                                                    teksti_vasen=f"Oikein: {self.oikein_maara}", teksti_keski=f"Taso: {self.taso}", 
+                                                                    teksti_oikea=f"Virheet: {self.virhe_maara}", teksti_koko=40)
             self.naytto.blit(yla_valikko,(0,0))
             
             # Pisteet
@@ -276,12 +282,6 @@ class Nuottiarvaus():
             if self.oikea_vastaus_ajastin > 0:
                 oikea_vastaus = ui_komponentit.Luo_Teksti(teksti=self.edellinen_oikea_vastaus[0], koko=52, vari=self.edellinen_oikea_vastaus[1])
                 self.naytto.blit(oikea_vastaus, (self.naytto.get_width() / 2 - oikea_vastaus.get_width() / 2, self.naytto.get_height() / 8))
-            
-            # Virhelaskurin ja oikein laskurin hallintaa
-            self.__Virhelaskuri()
-            
-            if self.oikein_maara < 0:
-                self.oikein_maara = 0
 
             pygame.display.flip()
 
@@ -289,15 +289,6 @@ class Nuottiarvaus():
             self.kello.tick(60)
             if self.oikea_vastaus_ajastin > 0:
                 self.oikea_vastaus_ajastin -= 1
-    
-    def __Virhelaskuri(self):
-        if self.virhe_maara >= 5:
-            self.luo_nuotti = True
-            self.virhe_maara = 0
-            self.oikein_maara = 0
-            self.taso -= 1
-            if self.taso <= 0:
-                self.taso = 1
 
     def __Luo_Nuotti(self):
         self.piirra_ylennetty = False
@@ -319,10 +310,9 @@ class Nuottiarvaus():
                         ("C","a"), 
                         ("G","e"), ("D","h"), ("A","f#"), ("E","c#"), ("H","g#"), ("F#","d#"), ("C#","a#")]
         
-        if self.oikein_maara >= 10:
+        if self.taso_oikein_talla_tasolla >= self.taso_vaadittu_oikein_maara and self.taso < 15:
             self.taso += 1
-            self.virhe_maara = 0
-            self.oikein_maara = 0
+            self.taso_oikein_talla_tasolla = 0
 
         # Tasokohtaiset muutokset
         if self.taso == 1:
