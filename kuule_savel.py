@@ -134,8 +134,8 @@ class Kuule_Savel():
                                 self.__Tarkista_Vastaus(self.vastauspainikkeet[i][1])
 
                         if uudelleen_painike.collidepoint(tapahtuma.pos):
-                            self.soitin.note_off(self.midi,127,0)
-                            self.soitin.note_on(self.midi,127,0)        
+                            self.soitin.note_off(self.midi,40,0)
+                            self.soitin.note_on(self.midi,40,0)        
 
 
             # Tunnistetaan onko hiiri painikkeen päällä
@@ -209,7 +209,7 @@ class Kuule_Savel():
             self.otsikkoteksti = "Sävelten läpikäynti..."
             if self.ajastin == 60:
                 if self.midi > self.midi_alue[0]:
-                    self.soitin.note_off(self.midi - 1, 127, 0)
+                    self.soitin.note_off(self.midi - 1, 40, 0)
 
                 if self.midi > self.midi_alue[1]:
                     self.valmistaudu = True
@@ -219,7 +219,7 @@ class Kuule_Savel():
                     self.otsikkoteksti = ""
                     
                 else:
-                    self.soitin.note_on(self.midi, 127, 0)
+                    self.soitin.note_on(self.midi, 40, 0)
                     self.ajastin = 0
                     self.aliteksti = apufunktiot.Savel_Tekstina(self.midi)[0]
                     self.midi += 1
@@ -235,7 +235,7 @@ class Kuule_Savel():
                 self.ajastin = 0
                 self.valmistaudu_laskuri = 3
                 self.__Arvo_Midi()
-                self.soitin.note_on(self.midi,127,0)
+                self.soitin.note_on(self.midi,40,0)
                 self.otsikkoteksti = "Mikä sävel?"
             else:
                 self.ajastin += 1

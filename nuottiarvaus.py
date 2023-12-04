@@ -122,8 +122,8 @@ class Nuottiarvaus():
                 if tapahtuma.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0] == True:    # Hiiren vasen painike alhaalla
                     
                     def Koskettimen_Tapahtuma(kosketin):
-                        self.soitin.note_off(kosketin[1], 127, 1)
-                        self.soitin.note_on(kosketin[1], 127, 1)
+                        self.soitin.note_off(kosketin[1], 40, 1)
+                        self.soitin.note_on(kosketin[1], 40, 1)
 
                         # Painetun koskettimen vertaaminen haettavaan nuottiin
                         if kosketin[1] == self.nuotti_midi:
@@ -178,8 +178,8 @@ class Nuottiarvaus():
 
                 else:
                     self.luo_nuotti = True
-                    self.soitin.note_off(60, 127,5)
-                    self.soitin.note_on(60, 127,5)
+                    self.soitin.note_off(60, 40,5)
+                    self.soitin.note_on(60, 40,5)
                     self.pisteet -= self.pisteet_vahennys_rajaviiva
                     self.edellinen_oikea_vastaus = (self.nykyinen_vastaus_teksti, "red")
                     self.oikea_vastaus_ajastin = 200
